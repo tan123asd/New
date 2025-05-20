@@ -14,7 +14,7 @@ function Home() {
     };
 
     return (
-        <div style={{ textAlign: 'center'}>
+        <div style={{ textAlign: 'center',}}>
             <h1>Home Page</h1>
             <a href="https://support.lenovo.com/" target="_blank" rel="noopener noreferrer">
             <button>SP Lenovo</button>
