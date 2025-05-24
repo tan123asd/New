@@ -1,0 +1,148 @@
+.profile-container {
+  padding: 2rem;
+  min-height: calc(100vh - 56px);
+  background-color: #f8f9fa;
+}
+
+.left-sidebar {
+  position: sticky;
+  top: 2rem;
+}
+
+.avatar-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  color: #6c757d;
+}
+
+.info-list {
+  margin-top: 1.5rem;
+}
+
+.info-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.main-content {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.nav-tabs {
+  border-bottom: 2px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  color: #6c757d;
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+  border: none;
+  color: #0d6efd;
+}
+
+.nav-tabs .nav-link.active {
+  border: none;
+  color: #0d6efd;
+  border-bottom: 2px solid #0d6efd;
+}
+
+.appointment-item,
+.course-item,
+.survey-item,
+.program-item {
+  padding: 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.appointment-header,
+.course-item h6,
+.survey-item h6,
+.program-item h6 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-badge.confirmed {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-badge.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.completed {
+  background-color: #cfe2ff;
+  color: #084298;
+}
+
+.progress {
+  height: 0.75rem;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  background-color: #0d6efd;
+}
+
+.appointment-details,
+.survey-details,
+.program-details {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.appointment-details p,
+.survey-details p,
+.program-details p {
+  margin-bottom: 0.25rem;
+}
+
+.btn-primary {
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem;
+  }
+  
+  .left-sidebar {
+    position: static;
+    margin-bottom: 2rem;
+  }
+  
+  .main-content {
+    padding: 1rem;
+  }
+} 

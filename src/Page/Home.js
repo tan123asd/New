@@ -7,8 +7,8 @@ function Home() {
 
     const goToAssist = () => {
         navigate('/assist');
-
     };
+    
     const goToYoutube = () => {
         window.location.href = 'https://www.youtube.com/';
     };
