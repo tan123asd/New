@@ -6,11 +6,28 @@ import {
   Button,
 } from '@mui/material';
 
-const AssistResult = ({ riskLevel, onReset }) => {
+const AssistResult = ({ riskLevel, onReset, surveyType }) => {
+  const getRecommendations = () => {
+    if (surveyType === 'ASSIST') {
+      return [
+        'Tham khảo ý kiến chuyên gia y tế để được đánh giá chi tiết hơn',
+        'Tham gia các khóa học và chương trình hỗ trợ phù hợp',
+        'Liên hệ với đường dây nóng hỗ trợ: 1800-xxxx'
+      ];
+    } else {
+      return [
+        'Tham khảo ý kiến chuyên gia tư vấn về sử dụng chất gây nghiện',
+        'Tham gia các chương trình can thiệp sớm',
+        'Tìm hiểu thêm về các rủi ro và tác hại của việc sử dụng chất gây nghiện',
+        'Xây dựng kỹ năng từ chối và đối phó với áp lực từ bạn bè'
+      ];
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom align="center">
-        Kết quả đánh giá
+        Kết quả đánh giá {surveyType}
       </Typography>
       <Alert
         severity={riskLevel.color}
@@ -19,29 +36,19 @@ const AssistResult = ({ riskLevel, onReset }) => {
         Mức độ nguy cơ: {riskLevel.level}
       </Alert>
       <Typography paragraph>
-        Dựa trên câu trả lời của bạn, chúng tôi đánh giá mức độ nguy cơ của
-        bạn là {riskLevel.level.toLowerCase()}. Đây là một đánh
-        giá sơ bộ và không thay thế cho tư vấn chuyên môn.
+        {riskLevel.description}
       </Typography>
       <Typography paragraph>
         Chúng tôi khuyến nghị bạn nên:
       </Typography>
       <ul>
-        <li>
-          <Typography>
-            Tham khảo ý kiến chuyên gia y tế để được đánh giá chi tiết hơn
-          </Typography>
-        </li>
-        <li>
-          <Typography>
-            Tham gia các khóa học và chương trình hỗ trợ phù hợp
-          </Typography>
-        </li>
-        <li>
-          <Typography>
-            Liên hệ với đường dây nóng hỗ trợ: 1800-xxxx
-          </Typography>
-        </li>
+        {getRecommendations().map((recommendation, index) => (
+          <li key={index}>
+            <Typography>
+              {recommendation}
+            </Typography>
+          </li>
+        ))}
       </ul>
       <Box sx={{ mt: 4, textAlign: 'center' }}>
         <Button

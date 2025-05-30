@@ -9,18 +9,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import "./App.css";
 
 // Pages
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-
-import EducationHub from "./pages/EducationHub";
-import Counseling from "./pages/Counseling";
-import Dashboard from "./pages/Dashboard";
 import AssistSurvey from "./pages/AssistSurvey";
 import UserProfile from "./pages/UserProfile";
-
-// Components
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import ProgramSurvey from "./pages/ProgramSurvey";
+import SurveyThankYou from "./pages/SurveyThankYou";
 
 const theme = createTheme({
   palette: {
@@ -39,19 +31,14 @@ function App() {
       <CssBaseline />
       <Router>
         <div className="App">
-          <Header />
           <main>
             <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/education" element={<EducationHub />} />
-              <Route path="/counseling" element={<Counseling />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/assist" element={<AssistSurvey />} />
+              <Route path="/" element={<AssistSurvey />} />
               <Route path="/profile" element={<UserProfile />} />
+              <Route path="/program-survey" element={<ProgramSurvey />} />
+              <Route path="/survey-thank-you" element={<SurveyThankYou />} />
             </Routes>
           </main>
-          <Footer />
         </div>
       </Router>
     </ThemeProvider>

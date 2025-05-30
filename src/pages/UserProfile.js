@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Nav, Tab, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Nav, Tab } from 'react-bootstrap';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import './UserProfile.css';
 
 const UserProfile = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('appointments');
 
   // Mock data - In real app, this would come from your backend
@@ -71,22 +69,6 @@ const UserProfile = () => {
     ]
   };
 
-  const handleNewAppointment = () => {
-    navigate('/appointments/new');
-  };
-
-  const handleViewAllCourses = () => {
-    navigate('/courses');
-  };
-
-  const handleViewAllSurveys = () => {
-    navigate('/surveys');
-  };
-
-  const handleViewAllPrograms = () => {
-    navigate('/programs');
-  };
-
   const renderPersonalInfo = () => {
     return (
       <Card className="mb-4">
@@ -107,12 +89,6 @@ const UserProfile = () => {
               <i className="fas fa-envelope me-2"></i>
               {userData.personalInfo.email}
             </p>
-          </div>
-          <div className="text-center mt-4">
-            <Button variant="outline-danger">
-              <i className="fas fa-key me-2"></i>
-              Đổi mật khẩu
-            </Button>
           </div>
         </Card.Body>
       </Card>
@@ -151,12 +127,6 @@ const UserProfile = () => {
               </div>
             );
           })}
-          <div className="text-center mt-4">
-            <Button variant="primary" onClick={handleNewAppointment}>
-              <i className="fas fa-plus me-2"></i>
-              Đặt lịch mới
-            </Button>
-          </div>
         </Card.Body>
       </Card>
     );
@@ -195,12 +165,6 @@ const UserProfile = () => {
               </div>
             );
           })}
-          <div className="text-center mt-4">
-            <Button variant="primary" onClick={handleViewAllCourses}>
-              <i className="fas fa-list me-2"></i>
-              Xem tất cả khóa học
-            </Button>
-          </div>
         </Card.Body>
       </Card>
     );
@@ -232,12 +196,6 @@ const UserProfile = () => {
               </div>
             );
           })}
-          <div className="text-center mt-4">
-            <Button variant="primary" onClick={handleViewAllSurveys}>
-              <i className="fas fa-list me-2"></i>
-              Xem tất cả khảo sát
-            </Button>
-          </div>
         </Card.Body>
       </Card>
     );
@@ -258,28 +216,21 @@ const UserProfile = () => {
                   {program.title}
                 </h6>
                 <div className="program-details">
+                  <span className="status-badge">
+                    {program.status}
+                  </span>
                   <p className="mb-1">
                     <i className="far fa-calendar-alt me-2"></i>
                     Ngày: {program.date}
                   </p>
-                  <p className="mb-1">
+                  <p className="mb-0">
                     <i className="far fa-clock me-2"></i>
                     Giờ: {program.time}
                   </p>
-                  <span className="status-badge confirmed">
-                    <i className="fas fa-check-circle me-1"></i>
-                    {program.status}
-                  </span>
                 </div>
               </div>
             );
           })}
-          <div className="text-center mt-4">
-            <Button variant="primary" onClick={handleViewAllPrograms}>
-              <i className="fas fa-list me-2"></i>
-              Xem tất cả chương trình
-            </Button>
-          </div>
         </Card.Body>
       </Card>
     );
