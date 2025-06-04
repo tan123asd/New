@@ -20,7 +20,7 @@ const ProgramsPage = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   const categories = [
-    { id: 'all', name: 'Tất cả chương trình' },
+    { id: 'all', name: 'Tất cả chương trìh' },
     { id: 'education', name: 'Giáo dục' },
     { id: 'community', name: 'Cộng đồng' },
     { id: 'counseling', name: 'Tư vấn' },
