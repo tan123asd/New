@@ -8,15 +8,7 @@ import './ProgramPage.css';
 
 const ProgramPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
   const [activeAudience, setActiveAudience] = useState('all');
-
-  const filterOptions = [
-    { id: 'all', label: 'Tất cả', icon: <FaFilter /> },
-    { id: 'upcoming', label: 'Sắp diễn ra', icon: <FaRegCalendarCheck /> },
-    { id: 'ongoing', label: 'Đang diễn ra', icon: <FaRegClock /> },
-    { id: 'completed', label: 'Đã kết thúc', icon: <FaChartLine /> }
-  ];
 
   const audienceOptions = [
     { id: 'all', label: 'Tất cả đối tượng', icon: <FaUsers /> },
@@ -76,9 +68,8 @@ const ProgramPage = () => {
   const filteredPrograms = programs.filter(program => {
     const matchesSearch = program.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          program.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = activeFilter === 'all' || program.status === activeFilter;
     const matchesAudience = activeAudience === 'all' || program.audience === activeAudience;
-    return matchesSearch && matchesFilter && matchesAudience;
+    return matchesSearch && matchesAudience;
   });
 
   return (
@@ -99,19 +90,6 @@ const ProgramPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-
-        <div className="filter-section">
-          {filterOptions.map(option => (
-            <button
-              key={option.id}
-              className={`filter-button ${activeFilter === option.id ? 'active' : ''}`}
-              onClick={() => setActiveFilter(option.id)}
-            >
-              {option.icon}
-              {option.label}
-            </button>
-          ))}
         </div>
 
         <div className="filter-section">

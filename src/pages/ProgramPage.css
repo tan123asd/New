@@ -243,15 +243,24 @@
   }
 
   .filter-section {
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: center;
   }
 
   .filter-button {
-    width: 100%;
+    width: auto;
   }
 
   .program-grid {
-    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .program-card {
+    border-radius: 10px;
+  }
+
+  .program-image {
+    height: 150px;
   }
 }
 
@@ -265,7 +274,7 @@
   }
 
   .program-card {
-    margin: 0 1rem;
+    border-radius: 8px;
   }
 }
 
