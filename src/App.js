@@ -13,7 +13,7 @@ import EducationHub from "./pages/EducationHub";
 import Counseling from "./pages/Counseling";
 import Dashboard from "./pages/Dashboard";
 import CoursesPage from "./pages/CoursesPage";
-
+import ProgramPage from "./pages/ProgramPage";
 import AssessmentPage from "./pages/AssessmentPage";
 import ProfilePage from "./pages/ProfilePage";
 
@@ -34,7 +34,7 @@ function App() {
             <Route path="/counseling" element={<Counseling />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<CoursesPage />} />
-          
+            <Route path="/programs" element={<ProgramPage />} />
             <Route path="/assessment" element={<AssessmentPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Routes>
