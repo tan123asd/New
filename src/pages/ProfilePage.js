@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { 
+  FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, 
+  FaEdit, FaSave, FaTimes, FaBook, FaGraduationCap, FaClipboardList, 
+  FaComments, FaCalendarCheck, FaUsers, FaChartLine, FaShieldAlt 
+} from "react-icons/fa";
 
 const ProfileContainer = styled.div`
   max-width: 1200px;
@@ -127,6 +131,125 @@ const Button = styled.button`
   }
 `;
 
+const RecentActivitiesSection = styled(ProfileSection)`
+  margin-top: 0;
+`;
+
+const ActivityCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const ActivityIcon = styled.div`
+  background: #e3f2fd;
+  color: #3f51b5;
+  padding: 0.8rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  min-width: 45px;
+  height: 45px;
+
+  &.assessment {
+    background: #fff3e0;
+    color: #f57c00;
+  }
+
+  &.counseling {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &.education {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+
+  &.community {
+    background: #f3e5f5;
+    color: #7b1fa2;
+  }
+`;
+
+const ActivityContent = styled.div`
+  flex: 1;
+`;
+
+const ActivityTitle = styled.h4`
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 500;
+`;
+
+const ActivityTime = styled.span`
+  color: #666;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.5rem;
+`;
+
+const ActivityDescription = styled.p`
+  color: #666;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+`;
+
+const ActivityStatus = styled.span`
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+
+  &.completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &.in-progress {
+    background-color: #fff3e0;
+    color: #f57c00;
+  }
+
+  &.upcoming {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+
+  &.high-risk {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+
+  &.medium-risk {
+    background-color: #fff3e0;
+    color: #ef6c00;
+  }
+
+  &.low-risk {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+`;
+
 const ProfilePage = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -136,9 +259,8 @@ const ProfilePage = () => {
     phone: "0123456789",
     dateOfBirth: "01/01/1990",
     address: "123 Đường ABC, Quận XYZ, TP.HCM",
-    education: "Đại học ABC",
-    occupation: "Sinh viên",
-    interests: "Công nghệ, Du lịch, Âm nhạc"
+    role: "Học sinh",
+    interests: "Tham gia các hoạt động phòng chống ma túy, Tư vấn đồng đẳng"
   });
 
   const [editedProfile, setEditedProfile] = useState(profile);
@@ -165,11 +287,59 @@ const ProfilePage = () => {
     }));
   };
 
+  const recentActivities = [
+    {
+      id: 1,
+      type: 'assessment',
+      title: 'Hoàn thành bài đánh giá ASSIST',
+      description: 'Kết quả: Mức độ nguy cơ thấp. Hệ thống đề xuất tham gia khóa học "Kỹ năng từ chối ma túy"',
+      time: '2 giờ trước',
+      status: 'low-risk',
+      icon: <FaChartLine />
+    },
+    {
+      id: 2,
+      type: 'education',
+      title: 'Hoàn thành khóa học "Nhận thức về ma túy"',
+      description: 'Đã hoàn thành khóa học với điểm số 95/100. Chứng chỉ đã được cấp.',
+      time: '1 ngày trước',
+      status: 'completed',
+      icon: <FaBook />
+    },
+    {
+      id: 3,
+      type: 'counseling',
+      title: 'Cuộc tư vấn với chuyên gia',
+      description: 'Thảo luận về chiến lược phòng tránh ma túy trong môi trường học đường',
+      time: '2 ngày trước',
+      status: 'in-progress',
+      icon: <FaComments />
+    },
+    {
+      id: 4,
+      type: 'community',
+      title: 'Tham gia chương trình truyền thông',
+      description: 'Đã đăng ký tham gia chương trình "Phòng chống ma túy học đường" tại trường THPT ABC',
+      time: '3 ngày trước',
+      status: 'upcoming',
+      icon: <FaUsers />
+    },
+    {
+      id: 5,
+      type: 'assessment',
+      title: 'Bài đánh giá CRAFFT',
+      description: 'Kết quả: Cần tư vấn thêm với chuyên gia. Đã đặt lịch hẹn tư vấn.',
+      time: '1 tuần trước',
+      status: 'medium-risk',
+      icon: <FaChartLine />
+    }
+  ];
+
   return (
     <ProfileContainer>
       <ProfileHeader>
         <h1>Hồ sơ cá nhân</h1>
-        <p>Quản lý thông tin cá nhân của bạn</p>
+        <p>Quản lý thông tin và theo dõi hoạt động phòng chống ma túy của bạn</p>
       </ProfileHeader>
 
       <ProfileContent>
@@ -241,45 +411,19 @@ const ProfilePage = () => {
                 <ProfileValue>{profile.address}</ProfileValue>
               )}
             </ProfileInfo>
-          </ProfileSection>
-
-          <ProfileSection>
-            <ProfileTitle>Thông tin bổ sung</ProfileTitle>
             <ProfileInfo>
-              <ProfileLabel>Học vấn</ProfileLabel>
-              {isEditing ? (
-                <ProfileInput
-                  value={editedProfile.education}
-                  onChange={(e) => handleChange("education", e.target.value)}
-                />
-              ) : (
-                <ProfileValue>{profile.education}</ProfileValue>
-              )}
+              <ProfileLabel>
+                <FaShieldAlt /> Vai trò
+              </ProfileLabel>
+              <ProfileValue>{profile.role}</ProfileValue>
             </ProfileInfo>
             <ProfileInfo>
-              <ProfileLabel>Nghề nghiệp</ProfileLabel>
-              {isEditing ? (
-                <ProfileInput
-                  value={editedProfile.occupation}
-                  onChange={(e) => handleChange("occupation", e.target.value)}
-                />
-              ) : (
-                <ProfileValue>{profile.occupation}</ProfileValue>
-              )}
-            </ProfileInfo>
-            <ProfileInfo>
-              <ProfileLabel>Sở thích</ProfileLabel>
-              {isEditing ? (
-                <ProfileInput
-                  value={editedProfile.interests}
-                  onChange={(e) => handleChange("interests", e.target.value)}
-                />
-              ) : (
-                <ProfileValue>{profile.interests}</ProfileValue>
-              )}
+              <ProfileLabel>
+                <FaUsers /> Sở thích
+              </ProfileLabel>
+              <ProfileValue>{profile.interests}</ProfileValue>
             </ProfileInfo>
           </ProfileSection>
-
           <ButtonGroup>
             {isEditing ? (
               <>
@@ -299,10 +443,27 @@ const ProfilePage = () => {
         </ProfileCard>
 
         <ProfileCard>
-          <ProfileSection>
-            <ProfileTitle>Hoạt động gần đây</ProfileTitle>
-            {/* Có thể thêm các hoạt động như lịch sử đánh giá, khóa học đã tham gia, etc. */}
-          </ProfileSection>
+          <ProfileTitle>Hoạt động gần đây</ProfileTitle>
+          {recentActivities.map(activity => (
+            <ActivityCard key={activity.id}>
+              <ActivityIcon className={activity.type}>
+                {activity.icon}
+              </ActivityIcon>
+              <ActivityContent>
+                <ActivityTitle>{activity.title}</ActivityTitle>
+                <ActivityTime>{activity.time}</ActivityTime>
+                <ActivityDescription>{activity.description}</ActivityDescription>
+                <ActivityStatus className={activity.status}>
+                  {activity.status === 'completed' && 'Hoàn thành'}
+                  {activity.status === 'in-progress' && 'Đang thực hiện'}
+                  {activity.status === 'upcoming' && 'Sắp tới'}
+                  {activity.status === 'high-risk' && 'Nguy cơ cao'}
+                  {activity.status === 'medium-risk' && 'Nguy cơ trung bình'}
+                  {activity.status === 'low-risk' && 'Nguy cơ thấp'}
+                </ActivityStatus>
+              </ActivityContent>
+            </ActivityCard>
+          ))}
         </ProfileCard>
       </ProfileContent>
     </ProfileContainer>
