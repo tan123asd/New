@@ -1,0 +1,259 @@
+.profile-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.profile-header {
+  background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+  border-radius: 15px;
+  padding: 2rem;
+  color: white;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.profile-header p {
+  margin: 0.5rem 0 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-section {
+  margin-bottom: 2rem;
+}
+
+.profile-title {
+  color: #1a237e;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.profile-info:hover {
+  background-color: #f5f5f5;
+}
+
+.profile-label {
+  color: #666;
+  width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-value {
+  color: #333;
+  flex: 1;
+}
+
+.profile-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.profile-input:focus {
+  outline: none;
+  border-color: #1a237e;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.button.edit {
+  background-color: #1a237e;
+  color: white;
+}
+
+.button.edit:hover {
+  background-color: #0d47a1;
+}
+
+.button.save {
+  background-color: #4caf50;
+  color: white;
+}
+
+.button.save:hover {
+  background-color: #388e3c;
+}
+
+.button.cancel {
+  background-color: #f44336;
+  color: white;
+}
+
+.button.cancel:hover {
+  background-color: #d32f2f;
+}
+
+.recent-activities {
+  margin-top: 0;
+}
+
+.activity-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.activity-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.activity-icon {
+  background: #e3f2fd;
+  color: #3f51b5;
+  padding: 0.8rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  min-width: 45px;
+  height: 45px;
+}
+
+.activity-icon.assessment {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.activity-icon.counseling {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.activity-icon.education {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.activity-icon.community {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-title {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.activity-time {
+  color: #666;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.activity-description {
+  color: #666;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.activity-status {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.activity-status.completed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.activity-status.in-progress {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.activity-status.upcoming {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.activity-status.high-risk {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.activity-status.medium-risk {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.activity-status.low-risk {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+@media (max-width: 768px) {
+  .profile-content {
+    grid-template-columns: 1fr;
+  }
+} 
