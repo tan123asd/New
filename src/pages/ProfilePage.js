@@ -251,16 +251,15 @@ const ActivityStatus = styled.span`
 `;
 
 const ProfilePage = () => {
-  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    fullName: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    phone: "0123456789",
-    dateOfBirth: "01/01/1990",
-    address: "123 Đường ABC, Quận XYZ, TP.HCM",
-    role: "Học sinh",
-    interests: "Tham gia các hoạt động phòng chống ma túy, Tư vấn đồng đẳng"
+    fullName: 'Nguyễn Văn A',
+    email: 'nguyenvana@example.com',
+    phone: '0123456789',
+    dateOfBirth: '01/01/2000',
+    address: '123 Đường ABC, Quận XYZ, TP.HCM',
+    role: 'Học sinh',
+    interests: 'Tham gia các hoạt động phòng chống ma túy, Tư vấn đồng đẳng'
   });
 
   const [editedProfile, setEditedProfile] = useState(profile);
@@ -291,47 +290,35 @@ const ProfilePage = () => {
     {
       id: 1,
       type: 'assessment',
-      title: 'Hoàn thành bài đánh giá ASSIST',
-      description: 'Kết quả: Mức độ nguy cơ thấp. Hệ thống đề xuất tham gia khóa học "Kỹ năng từ chối ma túy"',
+      title: 'Hoàn thành đánh giá ASSIST',
+      description: 'Đã hoàn thành bài đánh giá nguy cơ sử dụng ma túy',
       time: '2 giờ trước',
-      status: 'low-risk',
-      icon: <FaChartLine />
+      status: 'completed',
+      riskLevel: 'low-risk'
     },
     {
       id: 2,
       type: 'education',
-      title: 'Hoàn thành khóa học "Nhận thức về ma túy"',
-      description: 'Đã hoàn thành khóa học với điểm số 95/100. Chứng chỉ đã được cấp.',
+      title: 'Tham gia khóa học "Phòng chống ma túy học đường"',
+      description: 'Đang tham gia khóa học trực tuyến về phòng chống ma túy',
       time: '1 ngày trước',
-      status: 'completed',
-      icon: <FaBook />
+      status: 'in-progress'
     },
     {
       id: 3,
       type: 'counseling',
-      title: 'Cuộc tư vấn với chuyên gia',
-      description: 'Thảo luận về chiến lược phòng tránh ma túy trong môi trường học đường',
+      title: 'Đặt lịch tư vấn với chuyên gia',
+      description: 'Đã đặt lịch tư vấn trực tuyến với chuyên gia tâm lý',
       time: '2 ngày trước',
-      status: 'in-progress',
-      icon: <FaComments />
+      status: 'upcoming'
     },
     {
       id: 4,
       type: 'community',
-      title: 'Tham gia chương trình truyền thông',
-      description: 'Đã đăng ký tham gia chương trình "Phòng chống ma túy học đường" tại trường THPT ABC',
+      title: 'Tham gia chương trình "Phòng chống ma túy học đường"',
+      description: 'Đăng ký tham gia chương trình giáo dục cộng đồng',
       time: '3 ngày trước',
-      status: 'upcoming',
-      icon: <FaUsers />
-    },
-    {
-      id: 5,
-      type: 'assessment',
-      title: 'Bài đánh giá CRAFFT',
-      description: 'Kết quả: Cần tư vấn thêm với chuyên gia. Đã đặt lịch hẹn tư vấn.',
-      time: '1 tuần trước',
-      status: 'medium-risk',
-      icon: <FaChartLine />
+      status: 'upcoming'
     }
   ];
 
@@ -443,27 +430,36 @@ const ProfilePage = () => {
         </ProfileCard>
 
         <ProfileCard>
-          <ProfileTitle>Hoạt động gần đây</ProfileTitle>
-          {recentActivities.map(activity => (
-            <ActivityCard key={activity.id}>
-              <ActivityIcon className={activity.type}>
-                {activity.icon}
-              </ActivityIcon>
-              <ActivityContent>
-                <ActivityTitle>{activity.title}</ActivityTitle>
-                <ActivityTime>{activity.time}</ActivityTime>
-                <ActivityDescription>{activity.description}</ActivityDescription>
-                <ActivityStatus className={activity.status}>
-                  {activity.status === 'completed' && 'Hoàn thành'}
-                  {activity.status === 'in-progress' && 'Đang thực hiện'}
-                  {activity.status === 'upcoming' && 'Sắp tới'}
-                  {activity.status === 'high-risk' && 'Nguy cơ cao'}
-                  {activity.status === 'medium-risk' && 'Nguy cơ trung bình'}
-                  {activity.status === 'low-risk' && 'Nguy cơ thấp'}
-                </ActivityStatus>
-              </ActivityContent>
-            </ActivityCard>
-          ))}
+          <RecentActivitiesSection>
+            <ProfileTitle>Hoạt động gần đây</ProfileTitle>
+            {recentActivities.map(activity => (
+              <ActivityCard key={activity.id}>
+                <ActivityIcon className={activity.type}>
+                  {activity.type === 'assessment' && <FaClipboardList />}
+                  {activity.type === 'education' && <FaBook />}
+                  {activity.type === 'counseling' && <FaComments />}
+                  {activity.type === 'community' && <FaUsers />}
+                </ActivityIcon>
+                <ActivityContent>
+                  <ActivityTitle>{activity.title}</ActivityTitle>
+                  <ActivityTime>{activity.time}</ActivityTime>
+                  <ActivityDescription>{activity.description}</ActivityDescription>
+                  <ActivityStatus className={activity.status}>
+                    {activity.status === 'completed' && 'Hoàn thành'}
+                    {activity.status === 'in-progress' && 'Đang thực hiện'}
+                    {activity.status === 'upcoming' && 'Sắp diễn ra'}
+                  </ActivityStatus>
+                  {activity.riskLevel && (
+                    <ActivityStatus className={activity.riskLevel}>
+                      {activity.riskLevel === 'high-risk' && 'Nguy cơ cao'}
+                      {activity.riskLevel === 'medium-risk' && 'Nguy cơ trung bình'}
+                      {activity.riskLevel === 'low-risk' && 'Nguy cơ thấp'}
+                    </ActivityStatus>
+                  )}
+                </ActivityContent>
+              </ActivityCard>
+            ))}
+          </RecentActivitiesSection>
         </ProfileCard>
       </ProfileContent>
     </ProfileContainer>
