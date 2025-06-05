@@ -40,84 +40,60 @@ const ProgramsPage = () => {
       Title: 'Hội thảo Phòng Chống Ma Túy Cho Học Sinh',
       Description: 'Chương trình giáo dục và nâng cao nhận thức về tác hại của ma túy cho học sinh THPT.',
       category: 'education',
-      status: 'upcoming',
       StartTime: '2024-04-15T08:00:00',
       EndTime: '2024-04-15T11:30:00',
       Location: 'Trường THPT Nguyễn Huệ, Quận 1, TP.HCM',
-      participants: 150,
-      maxParticipants: 200,
       image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      isRegistered: false,
     },
     {
       id: 2,
       Title: 'Tư Vấn Miễn Phí Cho Gia Đình',
       Description: 'Chương trình tư vấn và hỗ trợ tâm lý cho gia đình có người thân nghiện ma túy.',
       category: 'counseling',
-      status: 'ongoing',
       StartTime: '2024-03-20T13:30:00',
       EndTime: '2024-03-20T16:30:00',
       Location: 'Trung tâm Tư vấn BrightChoice, Quận 3, TP.HCM',
-      participants: 45,
-      maxParticipants: 50,
       image: 'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      isRegistered: true,
     },
     {
       id: 3,
       Title: 'Ngày Hội Cộng Đồng Phòng Chống Ma Túy',
       Description: 'Sự kiện cộng đồng với các hoạt động tuyên truyền, tư vấn và giải trí.',
       category: 'community',
-      status: 'upcoming',
       StartTime: '2024-05-01T07:00:00',
       EndTime: '2024-05-01T17:00:00',
       Location: 'Công viên Tao Đàn, Quận 1, TP.HCM',
-      participants: 280,
-      maxParticipants: 500,
       image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      isRegistered: false,
     },
     {
       id: 4,
       Title: 'Khóa Tập Huấn Tình Nguyện Viên',
       Description: 'Đào tạo kỹ năng và kiến thức cho tình nguyện viên tham gia công tác phòng chống ma túy.',
       category: 'volunteer',
-      status: 'ongoing',
       StartTime: '2024-03-25T08:30:00',
       EndTime: '2024-03-25T16:30:00',
       Location: 'Trung tâm Đào tạo BrightChoice, Quận 7, TP.HCM',
-      participants: 35,
-      maxParticipants: 40,
       image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      isRegistered: false,
     },
     {
       id: 5,
       Title: 'Hội Thảo Chia Sẻ Kinh Nghiệm Cai Nghiện',
       Description: 'Chia sẻ kinh nghiệm và phương pháp hỗ trợ người nghiện trên con đường cai nghiện.',
       category: 'counseling',
-      status: 'completed',
       StartTime: '2024-02-15T09:00:00',
       EndTime: '2024-02-15T12:00:00',
       Location: 'Hội trường BrightChoice, Quận 5, TP.HCM',
-      participants: 120,
-      maxParticipants: 150,
       image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      isRegistered: false,
     },
     {
       id: 6,
       Title: 'Chương Trình Tuyên Truyền Tại Trường Đại Học',
       Description: 'Tuyên truyền và nâng cao nhận thức về ma túy cho sinh viên đại học.',
       category: 'education',
-      status: 'upcoming',
       StartTime: '2024-04-20T13:00:00',
       EndTime: '2024-04-20T16:00:00',
       Location: 'Trường Đại học Khoa học Xã hội và Nhân văn, TP.HCM',
-      participants: 180,
-      maxParticipants: 300,
       image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      isRegistered: false,
     },
   ];
 
@@ -125,7 +101,7 @@ const ProgramsPage = () => {
     const matchesSearch = program.Title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          program.Description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || program.category === selectedCategory;
-    const matchesStatus = selectedStatus === 'all' || program.status === selectedStatus;
+    const matchesStatus = selectedStatus === 'all';
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -258,7 +234,7 @@ const ProgramsPage = () => {
                   </div>
                   <div className="detail-item">
                     <FontAwesomeIcon icon={faUsers} />
-                    <span>{program.participants}/{program.maxParticipants} người tham gia</span>
+                    <span>N/A người tham gia</span>
                   </div>
                 </div>
 
@@ -268,35 +244,21 @@ const ProgramsPage = () => {
                       <div 
                         className="progress-fill"
                         style={{ 
-                          width: `${(program.participants / program.maxParticipants) * 100}%`,
-                          backgroundColor: program.participants >= program.maxParticipants ? '#f44336' : '#4caf50'
+                          width: '0%',
+                          backgroundColor: '#9e9e9e'
                         }}
                       />
                     </div>
                     <span className="progress-text">
-                      {program.participants >= program.maxParticipants ? (
-                        <FontAwesomeIcon icon={faExclamationCircle} /> 
-                      ) : (
-                        <FontAwesomeIcon icon={faCheckCircle} />
-                      )}
-                      {program.participants >= program.maxParticipants ? 'Đã đủ người' : 'Còn chỗ'}
+                      <FontAwesomeIcon icon={faExclamationCircle} /> 
+                      Không rõ trạng thái
                     </span>
                   </div>
                   
-                  {program.isRegistered ? (
-                    <button className="btn-registered">
-                      <FontAwesomeIcon icon={faCheckCircle} /> Đã đăng ký
-                    </button>
-                  ) : program.participants >= program.maxParticipants ? (
-                    <button className="btn-full" disabled>
-                      <FontAwesomeIcon icon={faExclamationCircle} /> Đã đủ người
-                    </button>
-                  ) : (
-                    <button className="btn-register">
-                      Đăng ký tham gia
-                      <FontAwesomeIcon icon={faArrowRight} />
-                    </button>
-                  )}
+                  <button className="btn-register">
+                    Đăng ký tham gia
+                    <FontAwesomeIcon icon={faArrowRight} />
+                  </button>
                 </div>
               </div>
             </div>
