@@ -218,6 +218,8 @@
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .info-card {
@@ -418,4 +420,10 @@
   .risk-description {
     font-size: 1rem;
   }
+}
+
+/* Add style for assessment-content to ensure it also takes full width */
+.assessment-content {
+    width: 100%;
+    box-sizing: border-box;
 } 

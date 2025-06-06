@@ -533,7 +533,6 @@ const AssessmentPage = () => {
            <p>{currentSurvey ? currentSurvey.description : ''}</p>
          </div>
        </div>
-       {/* Render the main content and info section inside the container */}
        <div className="assessment-container">
           {renderMainContent()}
           {/* Render the Info section below the main content if applicable stages */}
