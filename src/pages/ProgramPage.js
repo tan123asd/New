@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  FaSearch, FaCalendarAlt, FaMapMarkerAlt, FaUsers, 
-  FaBook, FaChartLine, FaFilter, FaRegClock, FaRegCalendarCheck,
+  FaSearch, FaUsers, 
   FaSchool, FaUniversity, FaUserFriends, FaChalkboardTeacher
 } from 'react-icons/fa';
 import './ProgramPage.css';

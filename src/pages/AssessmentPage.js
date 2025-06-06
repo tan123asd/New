@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './AssessmentPage.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClipboardList, faChartBar, faArrowLeft, faArrowRight, faUserShield, faInfoCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faUserShield, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 // --- Placeholder User Data Examples ---
 // Uncomment one of the examples below to test different user scenarios
