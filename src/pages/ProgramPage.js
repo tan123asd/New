@@ -5,10 +5,73 @@ import {
   FaSchool, FaUniversity, FaUserFriends, FaChalkboardTeacher
 } from 'react-icons/fa';
 import './ProgramPage.css';
+import ProgramCard from '../components/ProgramCard/ProgramCard';
+// Import the FeedbackModal component
+import FeedbackModal from '../components/FeedbackModal/FeedbackModal';
+
+// Placeholder User Data
+const currentUser = {
+  userId: 'user-abc',
+  role: 'user', // or 'counselor', 'admin'
+  // other user properties as needed
+};
 
 const ProgramPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeAudience, setActiveAudience] = useState('all');
+  // State to track registered programs for the current user (using program IDs)
+  const [registeredPrograms, setRegisteredPrograms] = useState([]); // e.g., [1, 3]
+
+  // State for managing feedback modal
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [programForFeedback, setProgramForFeedback] = useState(null); // Store the program object for feedback
+
+  // Placeholder handler for registration button click
+  const handleRegisterClick = (programId) => {
+    console.log('Register button clicked for program ID:', programId, 'by user:', currentUser.userId);
+    // Simulate successful registration by adding the programId to the state
+    // In a real app, you would make an API call here
+    if (!registeredPrograms.includes(programId)) {
+      setRegisteredPrograms([...registeredPrograms, programId]);
+      console.log(`User ${currentUser.userId} successfully registered for program ${programId}`);
+      // TODO: Handle potential UI feedback (e.g., show a success message)
+    } else {
+       console.log(`User ${currentUser.userId} is already registered for program ${programId}`);
+    }
+  };
+
+  // Handler for view/send feedback button click
+  const handleViewFeedbackClick = (programId) => {
+      console.log('Feedback button clicked for program ID:', programId, 'by user:', currentUser.userId);
+      // Find the program object
+      const program = programs.find(p => p.id === programId);
+      if (program) {
+          setProgramForFeedback(program); // Set the program for the modal
+          setIsFeedbackModalOpen(true); // Open the modal
+      }
+      // TODO: Implement logic to fetch existing feedback if needed
+  };
+
+   // Handler to close the feedback modal
+   const handleCloseFeedbackModal = () => {
+      setIsFeedbackModalOpen(false);
+      setProgramForFeedback(null); // Clear the program data when closing
+   };
+
+   // Handler to submit feedback (called from FeedbackModal)
+   const handleSubmitFeedback = (programId, userId, rating, comment) => {
+      console.log('Feedback received in ProgramPage:');
+      console.log('Program ID:', programId);
+      console.log('User ID:', userId);
+      console.log('Rating:', rating);
+      console.log('Comment:', comment);
+
+      // TODO: Implement actual API call to save feedback to UserEventFeedbacks table
+
+      // After processing (or sending to API), close the modal
+      handleCloseFeedbackModal();
+      // TODO: Provide user feedback (e.g., success message)
+   };
 
   const audienceOptions = [
     { id: 'all', label: 'Tất cả đối tượng', icon: <FaUsers /> },
@@ -25,7 +88,7 @@ const ProgramPage = () => {
       description: 'Chương trình giáo dục và nâng cao nhận thức về ma túy cho học sinh THPT, bao gồm các hoạt động tương tác và thảo luận nhóm.',
       date: '15/04/2024',
       location: 'Trường THPT ABC, Quận 1, TP.HCM',
-      audience: 'students',
+      audience: 'students', 
       status: 'upcoming',
       participants: 120,
       image: 'linear-gradient(45deg, #3f51b5, #7986cb)'
@@ -106,45 +169,31 @@ const ProgramPage = () => {
         </div>
 
         <div className="program-grid">
+          {/* Use the ProgramCard component for each program */}
           {filteredPrograms.map(program => (
-            <div key={program.id} className="program-card">
-              <div 
-                className="program-image"
-                style={{ background: program.image }}
-              />
-              <div className="program-content">
-                <h3 className="program-title">{program.title}</h3>
-                <div className="program-info">
-                  <FaCalendarAlt />
-                  {program.date}
-                </div>
-                <div className="program-info">
-                  <FaMapMarkerAlt />
-                  {program.location}
-                </div>
-                <div className="program-info">
-                  <FaUsers />
-                  {program.participants} người tham gia
-                </div>
-                <p className="program-description">{program.description}</p>
-              </div>
-              <div className="program-footer">
-                <span className={`program-status ${program.status}`}>
-                  {program.status === 'upcoming' && 'Sắp diễn ra'}
-                  {program.status === 'ongoing' && 'Đang diễn ra'}
-                  {program.status === 'completed' && 'Đã kết thúc'}
-                </span>
-                <button 
-                  className="register-button"
-                  disabled={program.status === 'completed'}
-                >
-                  {program.status === 'completed' ? 'Đã kết thúc' : 'Đăng ký tham gia'}
-                </button>
-              </div>
-            </div>
+            <ProgramCard 
+              key={program.id} 
+              program={program} 
+              onRegisterClick={handleRegisterClick}
+              onViewFeedbackClick={handleViewFeedbackClick}
+              // Determine if the current user is registered for this program
+              isRegistered={registeredPrograms.includes(program.id)}
+            />
           ))}
         </div>
       </div>
+
+      {/* Render the FeedbackModal if isFeedbackModalOpen is true and programForFeedback is available */}
+      {isFeedbackModalOpen && programForFeedback && (
+        <FeedbackModal
+          isOpen={isFeedbackModalOpen}
+          onClose={handleCloseFeedbackModal}
+          program={programForFeedback}
+          currentUser={currentUser}
+          onSubmitFeedback={handleSubmitFeedback} // Pass the submit handler
+        />
+      )}
+
     </div>
   );
 };

@@ -1,0 +1,134 @@
+/* Styles for FeedbackModal */
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed; /* Cover the entire viewport */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+    display: flex; /* Use flexbox for centering content */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    z-index: 1000; /* Ensure it's on top of other content */
+    padding: 1rem; /* Add some padding */
+}
+
+/* Modal Content */
+.modal-content {
+    background: white; /* White background for the modal box */
+    border-radius: 8px; /* Rounded corners */
+    padding: 1.5rem; /* Inner padding */
+    max-width: 500px; /* Maximum width */
+    width: 100%; /* Take full width up to max-width */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Add shadow */
+    position: relative; /* Needed for absolute positioning of close button */
+    max-height: 90vh; /* Maximum height relative to viewport height */
+    overflow-y: auto; /* Add scroll if content overflows */
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.modal-close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #aaa;
+    transition: color 0.2s ease;
+}
+
+.modal-close-button:hover {
+    color: #777;
+}
+
+.modal-body {
+    /* Styles for the main content area */
+}
+
+/* Styles for the feedback form */
+.feedback-form {
+    margin-top: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block; /* Label on its own line */
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #555;
+}
+
+/* Styles for the star rating */
+.star-rating {
+    display: inline-block; /* Display stars inline */
+    font-size: 0; /* Remove extra space from inline-block */
+}
+
+.star-rating label {
+    display: inline-block; /* Make each star clickable */
+    margin: 0; /* Remove default label margin */
+}
+
+.star-rating .star {
+    cursor: pointer; /* Indicate clickable */
+    margin-right: 2px; /* Space between stars */
+}
+
+.form-group input[type="number"],
+.form-group textarea {
+    width: 100%; /* Full width */
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding and border in element's total width */
+}
+
+.form-group input[type="number"] {
+    max-width: 80px; /* Smaller width for rating input */
+}
+
+.form-group textarea {
+    resize: vertical; /* Allow vertical resizing */
+}
+
+/* Styles for modal footer actions */
+.modal-footer-actions {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+    text-align: right; /* Align button to the right */
+}
+
+.submit-feedback-button {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #2196f3; /* Blue background */
+    color: white; /* White text */
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.submit-feedback-button:hover {
+    background-color: #1976d2; /* Darker blue on hover */
+} 
