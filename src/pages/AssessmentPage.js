@@ -29,7 +29,7 @@ import { faArrowLeft, faArrowRight, faUserShield, faInfoCircle } from '@fortawes
 
 // Default User Data (used if none of the above are uncommented)
 const currentUser = {
-  userId: 'user-123',
+  userId: 'user-1234',
   role: 'user', // Example roles: 'user', 'counselor', 'admin'
   age: 25, // Example age
 };
