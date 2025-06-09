@@ -20,7 +20,6 @@ import ProfilePage from "./pages/ProfilePage";
 // Components
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import SurveyStatus from "./components/SurveyStatus";
 
 function App() {
   return (
@@ -36,9 +35,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/programs" element={<ProgramPage />} />
-            <Route path="/assessment" element={<AssessmentPage />} >
-              <Route index element={<SurveyStatus />} />
-            </Route>
+            <Route path="/assessment" element={<AssessmentPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </main>
