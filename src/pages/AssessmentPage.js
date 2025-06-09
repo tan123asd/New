@@ -2,15 +2,30 @@ import React, { useState, useEffect } from 'react';
 import './AssessmentPage.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faUserShield, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import axios from 'axios';
 
-const api = axios.create({
-    baseURL: 'https://dev-our.com/api',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer YOUR_TOKEN_HERE'  // Thêm token nếu cần
-    }
-});
+// --- Placeholder User Data Examples ---
+// Uncomment one of the examples below to test different user scenarios
+
+// Example 1: A typical adult user (should get ASSIST)
+// const currentUser = {
+//   userId: 'user-adult-001',
+//   role: 'user', // Example roles: 'user', 'counselor', 'admin'
+//   age: 30,
+// };
+
+// Example 2: An adolescent user (should get CRAFFT)
+// const currentUser = {
+//   userId: 'user-adolescent-001',
+//   role: 'user',
+//   age: 16,
+// };
+
+// Example 3: Another adult user, perhaps with a different role (still gets ASSIST based on age logic)
+// const currentUser = {
+//   userId: 'user-adult-002',
+//   role: 'counselor',
+//   age: 45,
+// };
 
 // Default User Data (used if none of the above are uncommented)
 const currentUser = {
@@ -19,8 +34,12 @@ const currentUser = {
   age: 25, // Example age
 };
 
+// Manual Moderation Logic (Simulated)
+// This logic determines which assessment is appropriate based on user data,
+// mimicking a result from a manual moderation process.
 const getAppropriateAssessmentId = (user) => {
-
+  // Example logic: CRAFFT for users under 18, ASSIST for users 18 and older.
+  // This should be replaced with your actual moderation rules and return the Survey ID.
   if (user.age < 18) {
     return 'survey-crafft-id'; // Using a placeholder ID for CRAFFT
   } else {
@@ -28,9 +47,12 @@ const getAppropriateAssessmentId = (user) => {
   }
 };
 
+// --- Data Structured According to ERD (Simulated Fetch) ---
+
+// Mock database of surveys, questions, and answers
 const mockDatabase = {
   surveys: [
-    {// Api:user id; 
+    {
       id: 'survey-assist-id',
       title: 'ASSIST Assessment',
       description: 'Alcohol, Smoking and Substance Involvement Screening Test',
@@ -44,7 +66,7 @@ const mockDatabase = {
           surveyId: 'survey-assist-id',
           content: 'Trong 3 tháng qua, bạn đã sử dụng các chất sau bao nhiêu lần?',
           questionOrder: 1,
-          
+          // Substances are part of the question context, not separate entities in ERD
           substances: [
             'Rượu bia', 'Cần sa', 'Cocain', 'Thuốc lắc', 'Heroin',
             'Thuốc an thần', 'Thuốc kích thích', 'Các chất khác'
@@ -211,7 +233,8 @@ const fetchSurveyData = (surveyId) => {
     setTimeout(() => {
       const survey = mockDatabase.surveys.find(s => s.id === surveyId);
       if (survey) {
-       
+        // In a real app, you might fetch questions and answers separately
+        // Here, we assume the survey object includes nested questions and answers
         resolve(survey);
       } else {
         reject(`Survey with ID ${surveyId} not found`);
@@ -230,7 +253,7 @@ const AssessmentPage = () => {
   const [stage, setStage] = useState('loading'); // 'loading', 'questions', 'results', 'error'
   const [results, setResults] = useState(null); // Store calculated results
 
-  
+  // Fetch the appropriate survey when the component mounts
   useEffect(() => {
     const appropriateSurveyId = getAppropriateAssessmentId(currentUser);
     fetchSurveyData(appropriateSurveyId)
@@ -240,7 +263,7 @@ const AssessmentPage = () => {
       })
       .catch(err => {
         console.error('Error fetching survey:', err);
-       
+        // setError(err); // Optional: store error details
         setStage('error'); // Move to error stage
       });
   }, []); // Empty dependency array means this effect runs only once on mount
