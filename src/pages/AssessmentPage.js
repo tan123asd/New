@@ -11,9 +11,6 @@ const currentUser = {
   age: 25, // Example age
 };
 
-// Manual Moderation Logic (Simulated)
-// This logic determines which assessment is appropriate based on user data,
-// mimicking a result from a manual moderation process.
 const getAppropriateAssessmentId = (user) => {
   // Example logic: CRAFFT for users under 18, ASSIST for users 18 and older.
   // This should be replaced with your actual moderation rules and return the Survey ID.
