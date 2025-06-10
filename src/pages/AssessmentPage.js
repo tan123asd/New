@@ -3,29 +3,6 @@ import './AssessmentPage.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faUserShield, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
-// --- Placeholder User Data Examples ---
-// Uncomment one of the examples below to test different user scenarios
-
-// Example 1: A typical adult user (should get ASSIST)
-// const currentUser = {
-//   userId: 'user-adult-001',
-//   role: 'user', // Example roles: 'user', 'counselor', 'admin'
-//   age: 30,
-// };
-
-// Example 2: An adolescent user (should get CRAFFT)
-// const currentUser = {
-//   userId: 'user-adolescent-001',
-//   role: 'user',
-//   age: 16,
-// };
-
-// Example 3: Another adult user, perhaps with a different role (still gets ASSIST based on age logic)
-// const currentUser = {
-//   userId: 'user-adult-002',
-//   role: 'counselor',
-//   age: 45,
-// };
 
 // Default User Data (used if none of the above are uncommented)
 const currentUser = {
