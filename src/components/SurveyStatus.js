@@ -16,7 +16,7 @@ const SurveyStatus = () => {
             const response = await surveyService.checkStatus(sampleUserId);
             setStatus(response);
         } catch (err) {
-            setError(err.response?.data?.message || 'Không thể kiểm tra trạng thái survey');
+            setError(err.response?.data?.message || 'Không thể kiểm tra trạng tháiádasdasd survey');
         } finally {
             setLoading(false);
         }
