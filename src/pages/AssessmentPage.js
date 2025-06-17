@@ -6,14 +6,16 @@ import './AssessmentPage.css';
 
 const AssessmentPage = () => {
   const [assessments, setAssessments] = useState([]);
-  const [currentAssessment, setCurrentAssessment] = useState(null);
-  const [answers, setAnswers] = useState({});
-    // New states for question management
+  const [currentAssessment, setCurrentAssessment] = useState(null);  const [answers, setAnswers] = useState({});
+  
+  // New states for question management
   const [assessmentQuestions, setAssessmentQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   
   // Use custom hooks for better state management
-  const { surveys, loading: surveysLoading, error: surveysError, fetchSurveys } = useSurveys();useEffect(() => {
+  const { surveys, loading: surveysLoading, error: surveysError, fetchSurveys } = useSurveys();
+
+  useEffect(() => {
     fetchAssessments();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // We only want to run this once on mount
@@ -76,6 +78,60 @@ const AssessmentPage = () => {
       // Error handling is managed by the custom hook
     }
   };
+
+  // Test function to check API connectivity
+  const testApiConnection = async () => {
+    console.log('🔍 Testing API Connection...');
+    
+    try {
+      // Test 1: Health check
+      console.log('📡 Testing health endpoint...');
+      const healthResponse = await ApiService.api.get('/health');
+      console.log('✅ Health check:', healthResponse);
+    } catch (error) {
+      console.error('❌ Health check failed:', error.message);
+    }
+    
+    try {
+      // Test 2: Get all surveys
+      console.log('📡 Testing surveys endpoint...');
+      const surveysResponse = await ApiService.getAllSurveys();
+      console.log('✅ Surveys response:', surveysResponse);
+      
+      if (surveysResponse && surveysResponse.success && surveysResponse.data) {
+        const surveys = surveysResponse.data;
+        console.log(`✅ Found ${surveys.length} surveys`);
+        
+        if (surveys.length > 0) {
+          const testSurvey = surveys[0];
+          console.log('🧪 Testing with first survey:', testSurvey);
+          
+          // Test 3: Get survey details
+          try {
+            console.log('📡 Testing survey detail endpoint...');
+            const detailResponse = await ApiService.getSurveyWithQuestions(testSurvey.id);
+            console.log('✅ Survey detail response:', detailResponse);
+          } catch (detailError) {
+            console.error('❌ Survey detail failed:', detailError.message);
+          }
+          
+          // Test 4: Get survey questions
+          try {
+            console.log('📡 Testing survey questions endpoint...');
+            const questionsResponse = await ApiService.getSurveyQuestions(testSurvey.id);
+            console.log('✅ Survey questions response:', questionsResponse);
+          } catch (questionsError) {
+            console.error('❌ Survey questions failed:', questionsError.message);
+          }
+        } else {
+          console.warn('⚠️ No surveys found in database');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Surveys endpoint failed:', error.message);
+    }
+  };
+
   // Transform surveys data when it changes
   useEffect(() => {
     if (surveys && Array.isArray(surveys)) {
@@ -135,18 +191,26 @@ const AssessmentPage = () => {
   const startAssessment = async (assessment) => {
     await handleStartAssessment(assessment);
   };
-
   const handleStartAssessment = async (assessment) => {
     try {
-      console.log('AssessmentPage: Starting assessment:', assessment.id);
+      console.log('🚀 AssessmentPage: Starting assessment:', assessment.id);
+      console.log('📋 Assessment data:', assessment);
       setLoadingQuestions(true);
       
-      // Use the new getSurveyWithQuestions method to get both survey and questions
+      // Method 1: Try getSurveyWithQuestions (preferred - gets survey + questions)
+      console.log('📡 Attempting API Call 1: getSurveyWithQuestions()');
+      console.log('🔗 Endpoint: /surveys/' + assessment.id);
+      
       const response = await ApiService.getSurveyWithQuestions(assessment.id);
+      
+      console.log('📥 API Response 1:', response);
       
       if (response && response.success && response.data) {
         const surveyData = response.data;
         const questions = surveyData.questions || [];
+        
+        console.log('✅ Success: Found', questions.length, 'questions');
+        console.log('📝 Questions data:', questions);
         
         setAssessmentQuestions(questions);
         
@@ -156,38 +220,67 @@ const AssessmentPage = () => {
           questions: questions
         };
         
-        console.log('AssessmentPage: Assessment with questions loaded:', detailedAssessment);
-        setCurrentAssessment(detailedAssessment);
-        setAnswers({});
+        console.log('✅ Assessment with questions loaded successfully');
+        setCurrentAssessment(detailedAssessment);        setAnswers({});
       } else {
-        throw new Error('Failed to load survey questions');
+        console.warn('⚠️ API Call 1 failed: Invalid response structure');
+        console.log('Response details:', { response });
+        throw new Error('Failed to load survey questions from primary endpoint');
       }
     } catch (error) {
-      console.error('Failed to start assessment:', error);
+      console.error('❌ Primary API call failed:', error);
       
-      // Fallback: try to get questions separately
+      // Method 2: Fallback to getSurveyQuestions (questions only)
       try {
+        console.log('📡 Attempting API Call 2 (Fallback): getSurveyQuestions()');
+        console.log('🔗 Endpoint: /SurveyQuestion/' + assessment.id);
+        
         const questionsResponse = await ApiService.getSurveyQuestions(assessment.id);
+        
+        console.log('📥 API Response 2:', questionsResponse);
+        
         if (questionsResponse && questionsResponse.success) {
-          setAssessmentQuestions(questionsResponse.data || []);
+          const questions = questionsResponse.data || [];
+          console.log('✅ Fallback Success: Found', questions.length, 'questions');
+          console.log('📝 Questions data:', questions);
+          
+          setAssessmentQuestions(questions);
           setCurrentAssessment({
             ...assessment,
-            questions: questionsResponse.data || []
+            questions: questions
           });
           setAnswers({});
         } else {
-          throw new Error('Both endpoints failed');
-        }
-      } catch (fallbackError) {
+          console.warn('⚠️ API Call 2 failed: Invalid response structure');
+          console.log('Response details:', { questionsResponse });
+          throw new Error('Failed to load questions from fallback endpoint');
+        }} catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError);
-        // Use mock data as final fallback
-        const mockQuestions = getMockQuestions(assessment.id);
-        setAssessmentQuestions(mockQuestions);
+        
+        // ❌ DISABLE MOCK DATA FOR TESTING - Show error instead
+        console.error('❌ NO QUESTIONS AVAILABLE - Both API endpoints failed');
+        console.error('Primary endpoint (/surveys/{id}) failed:', error.message);
+        console.error('Fallback endpoint (/SurveyQuestion/{id}) failed:', fallbackError.message);
+        
+        // Set empty questions to show "no questions" message
+        setAssessmentQuestions([]);
         setCurrentAssessment({
           ...assessment,
-          questions: mockQuestions
+          questions: []
         });
         setAnswers({});
+        
+        // Show user-friendly error message
+        alert(`❌ Không thể tải câu hỏi cho assessment "${assessment.title}". 
+        
+Chi tiết lỗi:
+- API chính (/surveys/${assessment.id}): ${error.message}
+- API dự phòng (/SurveyQuestion/${assessment.id}): ${fallbackError.message}
+
+Vui lòng:
+1. Kiểm tra backend đã chạy chưa
+2. Kiểm tra các endpoint API đã được implement chưa
+3. Kiểm tra network connection`);
       }
     } finally {
       setLoadingQuestions(false);
@@ -448,10 +541,31 @@ const AssessmentPage = () => {
   }
   return (
     <div className="assessment-page">
-      <div className="assessment-container">
-        <div className="assessment-header">
+      <div className="assessment-container">        <div className="assessment-header">
           <h1>Recovery Assessments</h1>
           <p>Track your progress and evaluate your recovery journey with our comprehensive assessments</p>
+          
+          {/* Debug: Test API Connection Button */}
+          <div className="assessment-debug-section" style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#495057' }}>🔧 Debug Tools</h4>
+            <button 
+              onClick={testApiConnection}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.875rem'
+              }}
+            >
+              🧪 Test API Connection
+            </button>
+            <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
+              Click to test if backend APIs are working. Check browser console for detailed logs.
+            </small>
+          </div>
         </div>
 
         <div className="assessment-grid">
