@@ -3,19 +3,41 @@ import toast from 'react-hot-toast';
 
 export class NotificationService {
   static success(message) {
-    toast.success(message);
+    toast.success(message, {
+      duration: 4000,
+      position: 'top-right',
+    });
   }
-  
+
   static error(message) {
-    toast.error(message);
+    toast.error(message, {
+      duration: 5000,
+      position: 'top-right',
+    });
   }
-  
+
   static warning(message) {
-    toast(message, { icon: '⚠️' });
+    toast(message, {
+      icon: '⚠️',
+      duration: 4000,
+      position: 'top-right',
+    });
   }
-  
+
   static info(message) {
-    toast(message, { icon: 'ℹ️' });
+    toast(message, {
+      icon: 'ℹ️',
+      duration: 3000,
+      position: 'top-right',
+    });
+  }
+
+  static loading(message) {
+    return toast.loading(message);
+  }
+
+  static dismiss(toastId) {
+    toast.dismiss(toastId);
   }
 }
 
@@ -109,33 +131,8 @@ export class ErrorHandler {
     return {
       success: true,
       message,
-      context,
-      type: 'warning'
+      context,      type: 'warning'
     };
-  }
-}
-
-// Toast notification utility
-export class NotificationService {
-  static success(message) {
-    // Basic implementation - you can replace with a toast library
-    console.log('✅ Success:', message);
-    // TODO: Implement toast notifications
-  }
-
-  static error(message) {
-    console.error('❌ Error:', message);
-    // TODO: Implement toast notifications
-  }
-
-  static warning(message) {
-    console.warn('⚠️ Warning:', message);
-    // TODO: Implement toast notifications
-  }
-
-  static info(message) {
-    console.info('ℹ️ Info:', message);
-    // TODO: Implement toast notifications
   }
 }
 

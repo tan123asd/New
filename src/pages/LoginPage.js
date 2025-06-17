@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaGoogle, FaFacebook } from 'react-icons/fa';
 import ApiService from '../services/api';
+import { NotificationService } from '../services/errorHandler';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -70,6 +71,8 @@ const LoginPage = () => {
       return;
     }
 
+    const loadingToast = NotificationService.loading('Đang xử lý...');
+
     try {
       if (isRegister) {
         console.log('Attempting registration with:', formData.email);
@@ -77,10 +80,11 @@ const LoginPage = () => {
         
         if (response.success) {
           setIsRegister(false);
-          setError('Đăng ký thành công! Vui lòng đăng nhập.');
+          NotificationService.success('Đăng ký thành công! Vui lòng đăng nhập.');
+          setError('');
           setFormData({ email: '', password: '' });
         } else {
-          setError(response.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+          NotificationService.error(response.message || 'Đăng ký thất bại. Vui lòng thử lại.');
         }
       } else {
         console.log('Attempting login with:', formData.email);
@@ -89,6 +93,7 @@ const LoginPage = () => {
 
         if (response.success && response.data && response.data.accessToken) {
           console.log('Login successful, token saved:', response.data.accessToken);
+          NotificationService.success('Đăng nhập thành công!');
           
           // Dispatch custom event to notify Header about login success
           window.dispatchEvent(new CustomEvent('loginSuccess'));
@@ -100,14 +105,15 @@ const LoginPage = () => {
           }, 200);
         } else {
           console.error('Login failed - invalid response structure:', response);
-          setError(response.message || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.');
+          NotificationService.error(response.message || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.');
         }
       }
     } catch (error) {
       console.error('Authentication error:', error);
       const errorMessage = error.message || 'Xác thực thất bại. Vui lòng thử lại.';
-      setError(errorMessage);
+      NotificationService.error(errorMessage);
     } finally {
+      NotificationService.dismiss(loadingToast);
       setLoading(false);
     }
   };

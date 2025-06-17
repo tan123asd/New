@@ -11,12 +11,16 @@ import {
   FaTimes
 } from 'react-icons/fa';
 import ApiService from '../services/api';
+import { useApi } from '../hooks/useApi';
+import { NotificationService } from '../services/errorHandler';
 import './Counseling.css'; // Import the dedicated CSS file
 
 const Counseling = () => {
+  const { loading: slotsLoading, error: slotsError, callApi } = useApi();
   const [counselors, setCounselors] = useState([]);
-  // const [appointments, setAppointments] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [selectedCounselor, setSelectedCounselor] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -38,12 +42,41 @@ const Counseling = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);  const fetchData = async () => {
+    fetchAvailableSlots();
+  }, []);
+
+  const fetchAvailableSlots = async () => {
+    try {
+      const response = await callApi(() => ApiService.getAvailableSlots());
+      if (response.success && response.data) {
+        setAvailableSlots(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch available slots:', error);
+    }
+  };
+
+  const handleBookSlot = async (slotData) => {
+    try {
+      setBookingLoading(true);
+      const response = await ApiService.bookCounselingSlot(slotData);
+      if (response.success) {
+        NotificationService.success('Đặt lịch tư vấn thành công!');
+        fetchAvailableSlots(); // Refresh available slots
+        setShowBookingModal(false);
+      }
+    } catch (error) {
+      console.error('Failed to book slot:', error);
+      NotificationService.error('Có lỗi xảy ra khi đặt lịch.');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const fetchData = async () => {
     try {
       const counselorsData = await ApiService.getCounselors();
-      // const appointmentsData = await ApiService.getAppointments();
       setCounselors(counselorsData);
-      // setAppointments(appointmentsData);
     } catch (error) {
       console.error('Failed to fetch counseling data:', error);
       

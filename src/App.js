@@ -41,44 +41,55 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/education" element={<EducationHub />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              
-              {/* Protected Routes */}
+                {/* Protected Routes */}
               <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
+                <ErrorBoundary>
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                </ErrorBoundary>
               } />
               
               <Route path="/counseling" element={
-                <ProtectedRoute>
-                  <Counseling />
-                </ProtectedRoute>
+                <ErrorBoundary>
+                  <ProtectedRoute>
+                    <Counseling />
+                  </ProtectedRoute>
+                </ErrorBoundary>
               } />
               
               <Route path="/courses" element={
-                <ProtectedRoute>
-                  <CoursesPage />
-                </ProtectedRoute>
+                <ErrorBoundary>
+                  <ProtectedRoute>
+                    <CoursesPage />
+                  </ProtectedRoute>
+                </ErrorBoundary>
               } />
               
               <Route path="/programs" element={
-                <ProtectedRoute>
-                  <ProgramPage />
-                </ProtectedRoute>
+                <ErrorBoundary>
+                  <ProtectedRoute>
+                    <ProgramPage />
+                  </ProtectedRoute>
+                </ErrorBoundary>
               } />
               
               <Route path="/assessment" element={
-                <ProtectedRoute>
-                  <AssessmentPage />
-                </ProtectedRoute>
+                <ErrorBoundary>
+                  <ProtectedRoute>
+                    <AssessmentPage />
+                  </ProtectedRoute>
+                </ErrorBoundary>
               }>
                 <Route index element={<SurveyStatus />} />
               </Route>
               
               <Route path="/profile" element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
+                <ErrorBoundary>
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                </ErrorBoundary>
               } />
               
               {/* Admin Routes */}

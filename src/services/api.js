@@ -508,223 +508,7 @@ class ApiService {
       return createErrorResponse(error, 'Failed to book counseling slot');
     }  }
 
-  // Helper method to test API response format
-  async testApiResponseFormat() {
-    try {
-      console.log('🧪 Testing API Response Format...');
-      
-      // Test a simple endpoint to verify response format
-      const response = await this.api.get(API_ENDPOINTS.HEALTH);
-      
-      console.log('✅ API Response Format Test:', {
-        hasSuccess: response.hasOwnProperty('success'),
-        hasMessage: response.hasOwnProperty('message'),
-        hasData: response.hasOwnProperty('data'),
-        response: response
-      });
-      
-      return {
-        success: true,
-        message: 'API response format test completed',
-        data: response
-      };
-    } catch (error) {
-      console.log('⚠️ API Response Format Test Error:', error);
-      
-      // Check if error follows the expected format
-      const isValidErrorFormat = error.hasOwnProperty('success') && 
-                                error.hasOwnProperty('message');
-      
-      console.log('Error format validation:', {
-        isValidFormat: isValidErrorFormat,
-        error: error
-      });
-      
-      return {
-        success: false,
-        message: 'API response format test failed',
-        data: error
-      };
-    }
-  }
-
-  // Test authentication flow
-  async testAuthenticationFlow() {
-    try {
-      console.log('🧪 Testing Authentication Flow...');
-      
-      // Check if user is logged in
-      const currentUser = this.getCurrentUser();
-      if (currentUser) {
-        console.log('✅ User is logged in:', currentUser.email);
-        
-        // Test token refresh if available
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          console.log('🔄 Testing token refresh...');
-          try {
-            await this.refreshToken();
-            console.log('✅ Token refresh successful');
-          } catch (error) {
-            console.log('❌ Token refresh failed:', error.message);
-          }
-        }
-      } else {
-        console.log('❌ No user logged in');
-      }
-      
-      return {
-        success: true,
-        message: 'Authentication flow test completed',
-        data: {
-          isLoggedIn: !!currentUser,
-          user: currentUser,
-          hasRefreshToken: !!localStorage.getItem('refreshToken'),
-          hasAccessToken: !!localStorage.getItem('accessToken')
-        }
-      };
-    } catch (error) {
-      console.log('❌ Authentication flow test failed:', error);
-      return {
-        success: false,
-        message: 'Authentication flow test failed',
-        data: error
-      };
-    }
-  }
-
-  // Test Survey APIs
-  async testSurveyApis() {
-    try {
-      console.log('🧪 Testing Survey APIs...');
-      
-      const results = {};
-      
-      // Test get surveys
-      try {
-        console.log('📋 Testing getSurveys...');
-        const surveys = await this.getSurveys();
-        results.getSurveys = {
-          success: true,
-          count: surveys.data?.length || 0,
-          message: 'Surveys fetched successfully'
-        };
-      } catch (error) {
-        results.getSurveys = {
-          success: false,
-          message: error.message
-        };
-      }
-      
-      // Test get categories
-      try {
-        console.log('📂 Testing getCategories...');
-        const categories = await this.getCategories();
-        results.getCategories = {
-          success: true,
-          count: categories.data?.length || 0,
-          message: 'Categories fetched successfully'
-        };
-      } catch (error) {
-        results.getCategories = {
-          success: false,
-          message: error.message
-        };
-      }
-      
-      // Test user-specific APIs (if user is logged in)
-      const currentUser = this.getCurrentUser();
-      if (currentUser) {
-        console.log('👤 Testing user-specific APIs...');
-        
-        try {
-          const userSurveys = await this.getUserSurveys();
-          results.getUserSurveys = {
-            success: true,
-            count: userSurveys.data?.length || 0,
-            message: 'User surveys fetched successfully'
-          };
-        } catch (error) {
-          results.getUserSurveys = {
-            success: false,
-            message: error.message
-          };
-        }
-        
-        try {
-          const suitableSurveys = await this.getSuitableSurveys();
-          results.getSuitableSurveys = {
-            success: true,
-            count: suitableSurveys.data?.length || 0,
-            message: 'Suitable surveys fetched successfully'
-          };
-        } catch (error) {
-          results.getSuitableSurveys = {
-            success: false,
-            message: error.message
-          };
-        }
-        
-        try {
-          const surveyStatus = await this.getSurveyStatus();
-          results.getSurveyStatus = {
-            success: true,
-            data: surveyStatus.data,
-            message: 'Survey status fetched successfully'
-          };
-        } catch (error) {
-          results.getSurveyStatus = {
-            success: false,
-            message: error.message
-          };
-        }
-      } else {
-        results.userApis = {
-          success: false,
-          message: 'User not logged in - skipping user-specific API tests'
-        };
-      }
-      
-      console.log('✅ Survey API test results:', results);
-      
-      return {
-        success: true,
-        message: 'Survey API tests completed',
-        data: results
-      };
-    } catch (error) {
-      console.log('❌ Survey API test failed:', error);
-      return {
-        success: false,
-        message: 'Survey API test failed',
-        data: error      };
-    }
-  }
-
-  // Dashboard methods
-  async getDashboardData(userId = null) {
-    try {
-      const targetUserId = userId || this.getCurrentUserId();
-      return await this.api.get(API_ENDPOINTS.DASHBOARD_DATA(targetUserId));
-    } catch (error) {
-      console.warn('getDashboardData failed, using mock data');
-      return {
-        success: true,
-        data: {
-          daysSober: 15,
-          completedCourses: 3,
-          upcomingAppointments: 2,
-          streakDays: 15,
-          progress: {
-            education: 65,
-            counseling: 40,
-            assessment: 80
-          }
-        }
-      };
-    }
-  }
-
+  // Course methods
   async getCourse(courseId) {
     try {
       return await this.api.get(API_ENDPOINTS.COURSE_BY_ID(courseId));
@@ -734,22 +518,66 @@ class ApiService {
     }
   }
 
-  async enrollCourse(courseId) {
+  async enrollProgram(programId) {
     try {
-      return await this.api.post(API_ENDPOINTS.COURSE_ENROLL(courseId));
+      return await this.api.post(API_ENDPOINTS.PROGRAM_ENROLL, { programId });
     } catch (error) {
-      console.error('Failed to enroll course:', error);
+      console.error('Failed to enroll program:', error);
       throw error;
     }
   }
 
-  async getPrograms() {
+  // API health check and validation
+  async validateApiConnection() {
     try {
-      return await this.api.get(API_ENDPOINTS.PROGRAMS);
+      console.log('🔍 Validating API connection...');
+      const response = await this.api.get('/health');
+      console.log('✅ API connection successful:', response);
+      return { success: true, message: 'API connection validated' };
     } catch (error) {
-      console.error('Failed to fetch programs:', error);
-      throw error;
+      console.error('❌ API connection failed:', error);
+      return { 
+        success: false, 
+        message: 'Cannot connect to backend API',
+        error: error.message 
+      };
     }
+  }
+
+  // Test all critical endpoints
+  async testCriticalEndpoints() {
+    const results = {
+      health: false,
+      surveys: false,
+      categories: false
+    };
+
+    try {
+      // Test health endpoint
+      await this.validateApiConnection();
+      results.health = true;
+    } catch (error) {
+      console.error('Health check failed:', error);
+    }
+
+    try {
+      // Test surveys endpoint
+      await this.getSurveys();
+      results.surveys = true;
+    } catch (error) {
+      console.error('Surveys endpoint failed:', error);
+    }
+
+    try {
+      // Test categories endpoint
+      await this.getCategories();
+      results.categories = true;
+    } catch (error) {
+      console.error('Categories endpoint failed:', error);
+    }
+
+    console.log('🧪 Endpoint test results:', results);
+    return results;
   }
 }
 
