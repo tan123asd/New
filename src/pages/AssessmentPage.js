@@ -2,13 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FaClipboardList, FaChartLine, FaCheckCircle, FaClock } from 'react-icons/fa';
 import { useSurveys } from '../hooks';
 import ApiService from '../services/api';
+import SurveyQuestionRenderer from '../components/SurveyQuestionRenderer';
 import './AssessmentPage.css';
 
 const AssessmentPage = () => {
   const [assessments, setAssessments] = useState([]);
   const [currentAssessment, setCurrentAssessment] = useState(null);  const [answers, setAnswers] = useState({});
-  
-  // New states for question management
+    // New states for question management
+  const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [assessmentQuestions, setAssessmentQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   
@@ -187,101 +188,36 @@ const AssessmentPage = () => {
     const maxMinutes = Math.max(minMinutes + 2, Math.ceil(questionCount * 0.75));
     
     return `${minMinutes}-${maxMinutes} minutes`;
-  };
-  const startAssessment = async (assessment) => {
+  };  const startAssessment = async (assessment) => {
+    setSelectedAssessment(assessment);
     await handleStartAssessment(assessment);
   };
+
   const handleStartAssessment = async (assessment) => {
     try {
-      console.log('🚀 AssessmentPage: Starting assessment:', assessment.id);
-      console.log('📋 Assessment data:', assessment);
       setLoadingQuestions(true);
+      setSelectedAssessment(assessment);
       
-      // Method 1: Try getSurveyWithQuestions (preferred - gets survey + questions)
-      console.log('📡 Attempting API Call 1: getSurveyWithQuestions()');
-      console.log('🔗 Endpoint: /surveys/' + assessment.id);
+      console.log('Loading questions for assessment:', assessment.id);
+      const response = await ApiService.getSurvey(assessment.id);
       
-      const response = await ApiService.getSurveyWithQuestions(assessment.id);
-      
-      console.log('📥 API Response 1:', response);
-      
-      if (response && response.success && response.data) {
-        const surveyData = response.data;
-        const questions = surveyData.questions || [];
+      if (response && response.success && response.data && response.data.questions) {
+        setAssessmentQuestions(response.data.questions);
+        console.log(`Loaded ${response.data.questions.length} questions`);
         
-        console.log('✅ Success: Found', questions.length, 'questions');
-        console.log('📝 Questions data:', questions);
-        
-        setAssessmentQuestions(questions);
-        
-        const detailedAssessment = {
-          ...assessment,
-          ...surveyData,
-          questions: questions
-        };
-        
-        console.log('✅ Assessment with questions loaded successfully');
-        setCurrentAssessment(detailedAssessment);        setAnswers({});
-      } else {
-        console.warn('⚠️ API Call 1 failed: Invalid response structure');
-        console.log('Response details:', { response });
-        throw new Error('Failed to load survey questions from primary endpoint');
-      }
-    } catch (error) {
-      console.error('❌ Primary API call failed:', error);
-      
-      // Method 2: Fallback to getSurveyQuestions (questions only)
-      try {
-        console.log('📡 Attempting API Call 2 (Fallback): getSurveyQuestions()');
-        console.log('🔗 Endpoint: /SurveyQuestion/' + assessment.id);
-        
-        const questionsResponse = await ApiService.getSurveyQuestions(assessment.id);
-        
-        console.log('📥 API Response 2:', questionsResponse);
-        
-        if (questionsResponse && questionsResponse.success) {
-          const questions = questionsResponse.data || [];
-          console.log('✅ Fallback Success: Found', questions.length, 'questions');
-          console.log('📝 Questions data:', questions);
-          
-          setAssessmentQuestions(questions);
-          setCurrentAssessment({
-            ...assessment,
-            questions: questions
-          });
-          setAnswers({});
-        } else {
-          console.warn('⚠️ API Call 2 failed: Invalid response structure');
-          console.log('Response details:', { questionsResponse });
-          throw new Error('Failed to load questions from fallback endpoint');
-        }} catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
-        
-        // ❌ DISABLE MOCK DATA FOR TESTING - Show error instead
-        console.error('❌ NO QUESTIONS AVAILABLE - Both API endpoints failed');
-        console.error('Primary endpoint (/surveys/{id}) failed:', error.message);
-        console.error('Fallback endpoint (/SurveyQuestion/{id}) failed:', fallbackError.message);
-        
-        // Set empty questions to show "no questions" message
-        setAssessmentQuestions([]);
         setCurrentAssessment({
           ...assessment,
-          questions: []
+          questions: response.data.questions
         });
         setAnswers({});
-        
-        // Show user-friendly error message
-        alert(`❌ Không thể tải câu hỏi cho assessment "${assessment.title}". 
-        
-Chi tiết lỗi:
-- API chính (/surveys/${assessment.id}): ${error.message}
-- API dự phòng (/SurveyQuestion/${assessment.id}): ${fallbackError.message}
-
-Vui lòng:
-1. Kiểm tra backend đã chạy chưa
-2. Kiểm tra các endpoint API đã được implement chưa
-3. Kiểm tra network connection`);
+      } else {
+        console.warn('No questions found in survey data');
+        setAssessmentQuestions([]);
+        alert('Không thể tải câu hỏi. Vui lòng thử lại sau.');
       }
+    } catch (error) {
+      console.error('Failed to load assessment questions:', error);
+      alert('Không thể tải câu hỏi. Vui lòng thử lại sau.');
     } finally {
       setLoadingQuestions(false);
     }
@@ -366,9 +302,9 @@ Vui lòng:
           assessment.id === currentAssessment.id 
             ? { ...assessment, completed: true, score: score, lastTaken: new Date() }
             : assessment
-        ));
-          // Go back to assessments list
+        ));        // Go back to assessments list
         setCurrentAssessment(null);
+        setSelectedAssessment(null);
         setAssessmentQuestions([]);
         setAnswers({});
       } else {
@@ -395,6 +331,7 @@ Vui lòng:
           <p>No questions available for this assessment.</p>          <button 
             onClick={() => {
               setCurrentAssessment(null);
+              setSelectedAssessment(null);
               setAssessmentQuestions([]);
             }}
             className="assessment-btn assessment-btn-secondary"
@@ -403,61 +340,20 @@ Vui lòng:
           </button>
         </div>
       );
-    }
-
-    return (
+    }    return (
       <div className="assessment-questions">
-        {assessmentQuestions.map((question, questionIndex) => (
-          <div key={question.id} className="assessment-question-container">
-            <div className="assessment-question-header">
-              <h3 className="assessment-question-title">
-                Question {questionIndex + 1} of {assessmentQuestions.length}
-              </h3>
-              {question.required && (
-                <span className="assessment-question-required-badge">Required</span>
-              )}
-            </div>
-            
-            <div className="assessment-question-text">
-              {question.text || question.questionText || 'Question text not available'}
-            </div>
-
-            <div className="assessment-question-options">
-              {question.options && Array.isArray(question.options) && question.options.length > 0 ? (
-                question.options.map((option, optionIndex) => {
-                  const optionValue = option.id || option;
-                  const optionText = option.text || option;
-                  
-                  return (
-                    <div 
-                      key={option.id || optionIndex} 
-                      className={`assessment-option ${answers[question.id] === optionValue ? 'selected' : ''}`}
-                      onClick={() => handleAnswerChange(question.id, optionValue)}
-                    >
-                      <div className="assessment-option-radio">
-                        {answers[question.id] === optionValue && <div className="assessment-option-radio-selected"></div>}
-                      </div>
-                      <span className="assessment-option-text">{optionText}</span>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="assessment-text-input">
-                  <textarea
-                    value={answers[question.id] || ''}
-                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                    placeholder="Enter your response..."
-                    rows={3}
-                  />
-                </div>
-              )}
-            </div>
-            
-            {question.required && !answers[question.id] && (
-              <div className="assessment-question-required">* This field is required</div>
-            )}
-          </div>
-        ))}
+        <SurveyQuestionRenderer 
+          questions={assessmentQuestions.map(q => ({
+            questionId: q.id,
+            content: q.text || q.questionText || 'Question text not available',
+            answers: q.options?.map(opt => ({
+              answerId: opt.id || opt,
+              answerText: opt.text || opt
+            })) || []
+          }))}
+          onAnswerChange={handleAnswerChange}
+          answers={answers}
+        />
       </div>
     );
   };
@@ -516,6 +412,7 @@ Vui lòng:
             <div className="assessment-actions">              <button 
                 onClick={() => {
                   setCurrentAssessment(null);
+                  setSelectedAssessment(null);
                   setAssessmentQuestions([]);
                   setAnswers({});
                 }}

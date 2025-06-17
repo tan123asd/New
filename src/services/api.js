@@ -19,9 +19,8 @@ const API_ENDPOINTS = {
   SURVEY_BY_ID: (id) => `/surveys/${id}`,
   USER_SURVEYS: (userId) => `/surveys/user/${userId}`,
   SUITABLE_SURVEYS: (userId) => `/surveys/suitable/${userId}`,
-  SURVEY_STATUS: (userId) => `/surveys/status/${userId}`,
-    // Survey Question endpoints
-  SURVEY_QUESTIONS: (surveyId) => `/SurveyQuestion/${surveyId}`,
+  SURVEY_STATUS: (userId) => `/surveys/status/${userId}`,  // Survey Question endpoints
+  SURVEY_QUESTIONS: (surveyId) => `/surveyquestion/${surveyId}`,
   SURVEY_DETAIL: (surveyId) => `/surveys/${surveyId}`,
   
   // Survey Answer endpoints
@@ -31,18 +30,20 @@ const API_ENDPOINTS = {
   UPDATE_PROFILE: '/users/profile',
   
   // Dashboard endpoints
-  DASHBOARD_DATA: (userId) => `/dashboard/${userId}`,
+  DASHBOARD_DATA: (userId) => `/users/${userId}/dashboard`,
   
   // Course endpoints
   COURSES: '/courses',
-  COURSE_ENROLL: '/courses/enroll',
+  COURSE_BY_ID: (id) => `/courses/${id}`,
+  COURSE_ENROLL: (id) => `/courses/${id}/enroll`,
   
   // Program endpoints
   PROGRAMS: '/programs',
   PROGRAM_ENROLL: '/programs/enroll',
   
   // Counseling endpoints
-  COUNSELING_SLOTS: '/counseling/slots',
+  COUNSELING_SESSIONS: '/counseling/sessions',
+  COUNSELING_SLOTS: '/counseling/available-slots',
   COUNSELING_BOOK: '/counseling/book',
   
   // Health check
@@ -191,20 +192,22 @@ class ApiService {
     }
     return null;
   }
-
   // Authentication methods - CẬP NHẬT THEO BACKEND API
   async login(credentials) {
-    console.log('ApiService: Login called with:', credentials.email);
-    try {      console.log('ApiService: Attempting real API call to:', `${API_BASE_URL}${API_ENDPOINTS.LOGIN}`);
+    console.log('🔐 ApiService: Login attempt for:', credentials.email);
+    console.log('🌐 API URL:', `${API_BASE_URL}${API_ENDPOINTS.LOGIN}`);
+    
+    try {
       const response = await this.api.post(API_ENDPOINTS.LOGIN, {
         email: credentials.email,
         password: credentials.password
       });
       
-      console.log('ApiService: Real API response:', response);
+      console.log('✅ Login API Response:', response);
+      console.log('🔑 Access Token:', response.data?.accessToken ? 'Present' : 'Missing');
       
       if (response.success && response.data && response.data.accessToken) {
-        console.log('ApiService: Real API login successful');
+        console.log('💾 Storing token and user data');
         this.token = response.data.accessToken;
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
@@ -218,7 +221,7 @@ class ApiService {
         throw new Error('Invalid API response structure');
       }
     } catch (error) {
-      console.error('Real API login failed:', error);
+      console.error('❌ Login failed:', error);
       throw error;
     }
   }
@@ -283,37 +286,8 @@ class ApiService {
     this.token = null;
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    delete this.api.defaults.headers.Authorization;
+    localStorage.removeItem('user');    delete this.api.defaults.headers.Authorization;
     return { success: true, message: 'Logged out successfully' };
-  }
-  // Dashboard methods
-  async getDashboardData(userId = null) {
-    try {
-      const targetUserId = userId || this.getCurrentUserId();
-      if (!targetUserId) {
-        throw new Error('No user ID available');
-      }
-      // Backend cần tạo DashboardController hoặc dùng existing controllers
-      return await this.api.get(API_ENDPOINTS.DASHBOARD_DATA(targetUserId));
-    } catch (error) {
-      console.warn('getDashboardData API call failed, using mock data');
-      // Return mock data structure
-      return {
-        success: true,
-        data: {
-          daysSober: 15,
-          completedCourses: 3,
-          upcomingAppointments: 2,
-          streakDays: 15,
-          progress: {
-            education: 65,
-            counseling: 40,
-            assessment: 80
-          }
-        }
-      };
-    }
   }
 
   // Profile methods - CẢI THIỆN
@@ -504,76 +478,7 @@ class ApiService {
           }
         ]
       };
-    }
-  }
-
-  async getCourse(id) {
-    try {
-      validateRequired(id, 'Course ID');
-      return await this.api.get(`/courses/${id}`);
-    } catch (error) {
-      console.warn('getCourse API call failed:', error);
-      return createErrorResponse(error, 'Failed to fetch course');
-    }
-  }
-
-  async enrollCourse(courseId) {
-    try {
-      validateRequired(courseId, 'Course ID');
-      
-      const userId = this.getCurrentUserId();
-      if (!userId) {
-        throw new Error('No user ID available');
-      }
-
-      return await this.api.post(API_ENDPOINTS.COURSE_ENROLL, {
-        courseId,
-        userId
-      });
-    } catch (error) {
-      console.warn('enrollCourse API call failed:', error);
-      return createErrorResponse(error, 'Failed to enroll in course');
-    }
-  }
-
-  // Programs  
-  async getPrograms() {
-    try {
-      return await this.api.get(API_ENDPOINTS.PROGRAMS);
-    } catch (error) {
-      console.warn('getPrograms API call failed:', error);
-      return createErrorResponse(error, 'Failed to fetch programs');
-    }
-  }
-
-  async getProgram(id) {
-    try {
-      validateRequired(id, 'Program ID');
-      return await this.api.get(`/programs/${id}`);
-    } catch (error) {
-      console.warn('getProgram API call failed:', error);
-      return createErrorResponse(error, 'Failed to fetch program');
-    }
-  }
-
-  async enrollProgram(programId) {
-    try {
-      validateRequired(programId, 'Program ID');
-      
-      const userId = this.getCurrentUserId();
-      if (!userId) {
-        throw new Error('No user ID available');
-      }
-
-      return await this.api.post(API_ENDPOINTS.PROGRAM_ENROLL, {
-        programId,
-        userId
-      });
-    } catch (error) {
-      console.warn('enrollProgram API call failed:', error);
-      return createErrorResponse(error, 'Failed to enroll in program');
-    }
-  }
+    }  }
 
   // Counseling
   async getCounselingSlots() {
@@ -792,8 +697,58 @@ class ApiService {
       return {
         success: false,
         message: 'Survey API test failed',
-        data: error
+        data: error      };
+    }
+  }
+
+  // Dashboard methods
+  async getDashboardData(userId = null) {
+    try {
+      const targetUserId = userId || this.getCurrentUserId();
+      return await this.api.get(API_ENDPOINTS.DASHBOARD_DATA(targetUserId));
+    } catch (error) {
+      console.warn('getDashboardData failed, using mock data');
+      return {
+        success: true,
+        data: {
+          daysSober: 15,
+          completedCourses: 3,
+          upcomingAppointments: 2,
+          streakDays: 15,
+          progress: {
+            education: 65,
+            counseling: 40,
+            assessment: 80
+          }
+        }
       };
+    }
+  }
+
+  async getCourse(courseId) {
+    try {
+      return await this.api.get(API_ENDPOINTS.COURSE_BY_ID(courseId));
+    } catch (error) {
+      console.error('Failed to fetch course:', error);
+      throw error;
+    }
+  }
+
+  async enrollCourse(courseId) {
+    try {
+      return await this.api.post(API_ENDPOINTS.COURSE_ENROLL(courseId));
+    } catch (error) {
+      console.error('Failed to enroll course:', error);
+      throw error;
+    }
+  }
+
+  async getPrograms() {
+    try {
+      return await this.api.get(API_ENDPOINTS.PROGRAMS);
+    } catch (error) {
+      console.error('Failed to fetch programs:', error);
+      throw error;
     }
   }
 }

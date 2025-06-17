@@ -1,14 +1,26 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Toaster } from 'react-hot-toast';
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
+  // Temporarily disable StrictMode for React 19 compatibility
+  <>
     <App />
-  </React.StrictMode>
+    <Toaster 
+      position="top-right"
+      toastOptions={{
+        duration: 4000,
+        style: {
+          background: '#363636',
+          color: '#fff',
+        },
+      }}
+    />
+  </>
 );
 
 // If you want to start measuring performance in your app, pass a function

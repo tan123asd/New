@@ -1,86 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaPlay, FaBook, FaClock, FaUsers, FaStar, FaCheckCircle } from 'react-icons/fa';
-import ApiService from '../services/api';
+import { useCourses } from '../hooks';
 import './CoursesPage.css'; // Import the dedicated CSS file
 
 const CoursesPage = () => {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const { courses, loading, error, fetchCourses } = useCourses();
   useEffect(() => {
     fetchCourses();
   }, []);
 
-  const fetchCourses = async () => {
-    try {
-      const coursesData = await ApiService.getCourses();
-      setCourses(coursesData);
-    } catch (error) {
-      console.error('Failed to fetch courses:', error);
-      // Mock data
-      setCourses([
-        {
-          id: 1,
-          title: 'Recovery Fundamentals',
-          description: 'Master the essential concepts and strategies for successful addiction recovery.',
-          instructor: 'Dr. Sarah Johnson',
-          duration: '8 weeks',
-          lessons: 24,
-          students: 1250,
-          rating: 4.9,
-          level: 'Beginner',
-          price: 'Free',
-          enrolled: true,
-          progress: 65
-        },
-        {
-          id: 2,
-          title: 'Cognitive Behavioral Therapy Techniques',
-          description: 'Learn practical CBT methods to change negative thought patterns and behaviors.',
-          instructor: 'Dr. Michael Chen',
-          duration: '6 weeks',
-          lessons: 18,
-          students: 890,
-          rating: 4.8,
-          level: 'Intermediate',
-          price: '$49',
-          enrolled: false,
-          progress: 0
-        },
-        {
-          id: 3,
-          title: 'Mindfulness and Meditation',
-          description: 'Develop mindfulness practices to support mental wellness and recovery.',
-          instructor: 'Dr. Emily Rodriguez',
-          duration: '4 weeks',
-          lessons: 12,
-          students: 2100,
-          rating: 4.9,
-          level: 'Beginner',
-          price: 'Free',
-          enrolled: true,
-          progress: 100
-        },
-        {
-          id: 4,
-          title: 'Building Support Networks',
-          description: 'Learn how to create and maintain healthy relationships during recovery.',
-          instructor: 'Dr. David Park',
-          duration: '5 weeks',
-          lessons: 15,
-          students: 650,
-          rating: 4.7,
-          level: 'Intermediate',
-          price: '$29',
-          enrolled: false,
-          progress: 0
-        }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (error) {
+    return (
+      <div className="error-message">
+        <p>Error loading courses: {error}</p>
+        <button onClick={fetchCourses}>Retry</button>
+      </div>
+    );  }
 
   const getLevelColor = (level) => {
     switch (level) {

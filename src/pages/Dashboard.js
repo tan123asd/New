@@ -31,19 +31,20 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
   const fetchDashboardData = async () => {
     try {
       const data = await ApiService.getDashboardData();
-      setDashboardData(data);
+      if (data.success) {
+        setDashboardData(data.data);
+      }
       
-      // Mock data for upcoming events and achievements
+      // Mock data for upcoming events and achievements vẫn giữ nguyên
       setUpcomingEvents([
         { id: 1, title: 'Counseling Session', date: '2025-06-18', time: '10:00 AM', type: 'counseling' },
         { id: 2, title: 'Group Therapy', date: '2025-06-19', time: '2:00 PM', type: 'group' },
         { id: 3, title: 'Assessment Review', date: '2025-06-20', time: '11:00 AM', type: 'assessment' }
       ]);
-
+      
       setRecentAchievements([
         { id: 1, title: '7 Days Sober', icon: '🏆', date: '2025-06-10' },
         { id: 2, title: 'Completed Module 1', icon: '📚', date: '2025-06-15' },

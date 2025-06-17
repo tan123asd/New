@@ -6,18 +6,17 @@ import { useApi } from './useApi';
 // Hook for surveys data
 export const useSurveys = () => {
   const { loading, error, data, callApi, reset } = useApi();
-
   const fetchSurveys = useCallback(() => {
     return callApi(() => ApiService.getSurveys());
-  }, [callApi]);
+  }, []);
 
   const fetchUserSurveys = useCallback((userId = null) => {
     return callApi(() => ApiService.getUserSurveys(userId));
-  }, [callApi]);
+  }, []);
 
   const fetchSuitableSurveys = useCallback((userId = null) => {
     return callApi(() => ApiService.getSuitableSurveys(userId));
-  }, [callApi]);
+  }, []);
 
   return {
     surveys: data,
@@ -34,7 +33,6 @@ export const useSurveys = () => {
 export const useAuth = () => {
   const { loading, error, callApi, reset } = useApi();
   const [user, setUser] = useState(ApiService.getCurrentUser());
-
   const login = useCallback(async (credentials) => {
     try {
       const result = await callApi(() => ApiService.login(credentials));
@@ -45,7 +43,7 @@ export const useAuth = () => {
     } catch (err) {
       throw err;
     }
-  }, [callApi]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -62,7 +60,7 @@ export const useAuth = () => {
 
   const register = useCallback(async (userData) => {
     return callApi(() => ApiService.register(userData));
-  }, [callApi]);
+  }, []);
 
   return {
     user,
@@ -79,18 +77,15 @@ export const useAuth = () => {
 // Hook for courses data
 export const useCourses = () => {
   const { loading, error, data, callApi, reset } = useApi();
-
   const fetchCourses = useCallback(() => {
     return callApi(() => ApiService.getCourses());
-  }, [callApi]);
-
+  }, []);
   const fetchCourse = useCallback((courseId) => {
     return callApi(() => ApiService.getCourse(courseId));
-  }, [callApi]);
-
+  }, []);
   const enrollCourse = useCallback((courseId) => {
     return callApi(() => ApiService.enrollCourse(courseId));
-  }, [callApi]);
+  }, []);
 
   return {
     courses: data,
@@ -106,14 +101,13 @@ export const useCourses = () => {
 // Hook for user profile
 export const useProfile = () => {
   const { loading, error, data, callApi, reset } = useApi();
-
   const fetchProfile = useCallback(() => {
     return callApi(() => ApiService.getProfile());
-  }, [callApi]);
+  }, []);
 
   const updateProfile = useCallback((profileData) => {
     return callApi(() => ApiService.updateProfile(profileData));
-  }, [callApi]);
+  }, []);
 
   return {
     profile: data,
@@ -128,12 +122,11 @@ export const useProfile = () => {
 // Hook for data fetching with auto-load
 export const useApiData = (apiCall, dependencies = []) => {
   const { loading, error, data, callApi, reset } = useApi();
-
   const fetchData = useCallback(() => {
     if (apiCall) {
       return callApi(apiCall);
     }
-  }, [callApi, apiCall]);
+  }, [apiCall]);
 
   useEffect(() => {
     fetchData();
@@ -152,7 +145,6 @@ export const useApiData = (apiCall, dependencies = []) => {
 export const useApiForm = () => {
   const { loading, error, callApi, reset } = useApi();
   const [success, setSuccess] = useState(false);
-
   const submitForm = useCallback(async (apiCall) => {
     setSuccess(false);
     try {
@@ -163,7 +155,7 @@ export const useApiForm = () => {
       setSuccess(false);
       throw err;
     }
-  }, [callApi]);
+  }, []);
 
   const resetForm = useCallback(() => {
     setSuccess(false);
