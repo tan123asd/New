@@ -22,73 +22,10 @@ const EducationHub = () => {
   const fetchEducationContent = async () => {
     try {
       const content = await ApiService.getEducationContent();
-      setEducationContent(content);
-    } catch (error) {
+      setEducationContent(content);    } catch (error) {
       console.error('Failed to fetch education content:', error);
-      // Mock data for demonstration
-      const mockContent = [
-        {
-          id: 1,
-          title: 'Understanding Addiction: The Science Behind It',
-          description: 'Learn about the neurological and psychological aspects of addiction.',
-          type: 'article',
-          category: 'addiction',
-          duration: '15 min read',
-          difficulty: 'Beginner',
-          thumbnail: '/api/placeholder/300/200'
-        },
-        {
-          id: 2,
-          title: 'Building a Strong Recovery Foundation',
-          description: 'Essential steps to create a solid foundation for your recovery journey.',
-          type: 'video',
-          category: 'recovery',
-          duration: '25 min',
-          difficulty: 'Intermediate',
-          thumbnail: '/api/placeholder/300/200'
-        },
-        {
-          id: 3,
-          title: 'Mindfulness and Mental Wellness',
-          description: 'Discover mindfulness techniques to support your mental health.',
-          type: 'audio',
-          category: 'wellness',
-          duration: '20 min',
-          difficulty: 'Beginner',
-          thumbnail: '/api/placeholder/300/200'
-        },
-        {
-          id: 4,
-          title: 'Creating Your Support Network',
-          description: 'How to build and maintain meaningful support relationships.',
-          type: 'article',
-          category: 'support',
-          duration: '12 min read',
-          difficulty: 'Beginner',
-          thumbnail: '/api/placeholder/300/200'
-        },
-        {
-          id: 5,
-          title: 'Recognizing and Preventing Relapse',
-          description: 'Identify warning signs and develop prevention strategies.',
-          type: 'video',
-          category: 'relapse',
-          duration: '30 min',
-          difficulty: 'Advanced',
-          thumbnail: '/api/placeholder/300/200'
-        },
-        {
-          id: 6,
-          title: 'Nutrition and Recovery',
-          description: 'The role of proper nutrition in supporting recovery.',
-          type: 'article',
-          category: 'wellness',
-          duration: '10 min read',
-          difficulty: 'Beginner',
-          thumbnail: '/api/placeholder/300/200'
-        }
-      ];
-      setEducationContent(mockContent);
+      // No fallback mock data - show empty state
+      setEducationContent([]);
     } finally {
       setLoading(false);
     }

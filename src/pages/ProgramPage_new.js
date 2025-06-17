@@ -16,53 +16,12 @@ const ProgramPage = () => {
   const fetchPrograms = async () => {
     try {
       const response = await callApi(() => ApiService.getPrograms());
-      if (response.success && response.data) {
-        setPrograms(response.data);
+      if (response.success && response.data) {        setPrograms(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch programs:', error);
-      // Mock data as fallback
-      setPrograms([
-        {
-          id: 1,
-          title: '12-Step Recovery Program',
-          description: 'A comprehensive 12-step program with group support and individual guidance.',
-          duration: '12 weeks',
-          type: 'Group',
-          schedule: 'Mondays & Wednesdays, 7-8 PM',
-          participants: 15,
-          maxParticipants: 20,
-          startDate: '2025-06-25',
-          price: 'Free',
-          enrolled: false
-        },
-        {
-          id: 2,
-          title: 'Intensive Outpatient Program',
-          description: 'Structured program combining therapy, education, and peer support.',
-          duration: '8 weeks',
-          type: 'Hybrid',
-          schedule: 'Mon, Wed, Fri 6-9 PM',
-          participants: 8,
-          maxParticipants: 12,
-          startDate: '2025-07-01',
-          price: '$200',
-          enrolled: true
-        },
-        {
-          id: 3,
-          title: 'Family Support Program',
-          description: 'Support program for families affected by addiction.',
-          duration: '6 weeks',
-          type: 'Group',
-          schedule: 'Saturdays, 10 AM-12 PM',
-          participants: 12,
-          maxParticipants: 15,
-          startDate: '2025-06-28',
-          price: 'Free',
-          enrolled: false
-        }
-      ]);
+      // No fallback mock data - show empty state
+      setPrograms([]);
     }
   };
 

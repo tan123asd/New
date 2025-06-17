@@ -3,15 +3,17 @@ import { FaClipboardList, FaChartLine, FaCheckCircle, FaClock } from 'react-icon
 import { useSurveys } from '../hooks';
 import ApiService from '../services/api';
 import SurveyQuestionRenderer from '../components/SurveyQuestionRenderer';
+import DatabaseStructureTest from '../components/DatabaseStructureTest';
 import './AssessmentPage.css';
 
-const AssessmentPage = () => {
-  const [assessments, setAssessments] = useState([]);
+const AssessmentPage = () => {  const [assessments, setAssessments] = useState([]);
   const [currentAssessment, setCurrentAssessment] = useState(null);  const [answers, setAnswers] = useState({});
     // New states for question management
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [assessmentQuestions, setAssessmentQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
+  // Database testing state
+  const [showDatabaseTest, setShowDatabaseTest] = useState(false);
   
   // Use custom hooks for better state management
   const { surveys, loading: surveysLoading, error: surveysError, fetchSurveys } = useSurveys();
@@ -19,38 +21,33 @@ const AssessmentPage = () => {
   useEffect(() => {
     fetchAssessments();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // We only want to run this once on mount
-  // Enhanced data transformation with better backend response handling
+  }, []); // We only want to run this once on mount  // Enhanced data transformation - MAPPING ĐÚNG THEO BACKEND PASCALCASE
   const transformSurveyToAssessment = useCallback((survey) => {
-    // Handle different possible response formats from backend
-    const surveyId = survey.id || survey.surveyId || survey._id;
-    const surveyTitle = survey.title || survey.name || survey.surveyTitle || 'Untitled Assessment';
-    const surveyDescription = survey.description || survey.desc || survey.surveyDescription || 'Complete this assessment to track your progress';
+    // ✅ ĐÚNG: Map theo PascalCase từ backend Azure database
+    const surveyId = survey.SurveyId || survey.Id || survey.id;
+    const surveyTitle = survey.Title || survey.title || 'Untitled Assessment';
+    const surveyDescription = survey.Description || survey.description || 'Complete this assessment to track your progress';
     
-    // Handle questions count from different possible fields
-    const questionCount = survey.questions?.length || 
+    // ✅ ĐÚNG: Handle Questions array từ backend
+    const questionCount = survey.Questions?.length || 
                          survey.questionCount || 
-                         survey.questionsCount || 
-                         survey.totalQuestions || 
                          0;
     
-    // Handle completion status from different possible fields
-    const isCompleted = survey.completed || 
-                       survey.isCompleted || 
+    // ✅ ĐÚNG: Handle completion status
+    const isCompleted = survey.IsCompleted || 
+                       survey.completed || 
                        survey.status === 'completed' ||
                        false;
     
-    // Handle last taken date from different possible fields
-    const lastTakenDate = survey.lastTaken || 
-                         survey.lastCompleted || 
-                         survey.completedAt || 
-                         survey.updatedAt ||
+    // ✅ ĐÚNG: Handle timestamps từ backend
+    const lastTakenDate = survey.LastTaken || 
+                         survey.CompletedAt || 
+                         survey.UpdatedAt ||
                          null;
-    
-    // Handle score from different possible fields
-    const assessmentScore = survey.score || 
-                           survey.totalScore || 
-                           survey.result?.score ||
+      // ✅ ĐÚNG: Handle score từ backend
+    const assessmentScore = survey.Score || 
+                           survey.TotalScore || 
+                           survey.Result?.Score ||
                            null;
 
     return {
@@ -58,11 +55,12 @@ const AssessmentPage = () => {
       title: surveyTitle,
       description: surveyDescription,
       questions: questionCount,
-      duration: estimateDuration(questionCount),      completed: isCompleted,
+      duration: estimateDuration(questionCount),
+      completed: isCompleted,
       lastTaken: lastTakenDate ? new Date(lastTakenDate) : null,
       score: assessmentScore,
-      category: survey.category || survey.categoryId || 'general',
-      difficulty: survey.difficulty || survey.level || 'medium',
+      category: survey.Category || survey.CategoryId || 'general',
+      difficulty: survey.Difficulty || survey.Level || 'medium',
       surveyData: survey // Keep original data for reference
     };
   }, []); // Dependencies for useCallback
@@ -141,44 +139,15 @@ const AssessmentPage = () => {
       const transformedAssessments = surveys.map(transformSurveyToAssessment);
       
       console.log('AssessmentPage: Transformed assessments:', transformedAssessments);
-      setAssessments(transformedAssessments);
-    } else if (surveysError) {
+      setAssessments(transformedAssessments);    } else if (surveysError) {
       console.error('AssessmentPage: Error from surveys hook:', surveysError);      
-      // Use fallback mock data when API fails
-      setAssessments(getMockAssessments());
+      // ✅ REMOVED: No fallback mock data - show empty state
+      setAssessments([]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [surveys, surveysError]);
-
-  const getMockAssessments = () => {
-    return [
-      {
-        id: 'mock-1',
-        title: 'Recovery Progress Assessment',
-        description: 'Evaluate your current progress in recovery',
-        questions: 15,
-        duration: '10-15 minutes',
-        completed: false,
-        lastTaken: null,
-        score: null,
-        category: 'recovery',
-        difficulty: 'medium'
-      },
-      {
-        id: 'mock-2',
-        title: 'Mental Health Check-in',
-        description: 'Assess your current mental health status',
-        questions: 20,
-        duration: '15-20 minutes',
-        completed: false,
-        lastTaken: null,
-        score: null,
-        category: 'mental-health',
-        difficulty: 'medium'
-      }
-    ];
-  };
-
+  // ✅ REMOVED: Mock data function completely removed - only use real API data
+  
   // Enhanced duration estimation with more accurate calculations
   const estimateDuration = (questionCount) => {
     if (!questionCount || questionCount === 0) return '5-10 minutes';
@@ -220,80 +189,45 @@ const AssessmentPage = () => {
       alert('Không thể tải câu hỏi. Vui lòng thử lại sau.');
     } finally {
       setLoadingQuestions(false);
-    }
-  };
+    }  };
 
-  const getMockQuestions = (assessmentId) => {
-    // Mock questions for testing
-    return [
-      {
-        id: 1,
-        text: "How would you rate your overall mood today?",
-        type: "multiple-choice",
-        required: true,
-        options: [
-          { id: 1, text: "Very Poor" },
-          { id: 2, text: "Poor" },
-          { id: 3, text: "Fair" },
-          { id: 4, text: "Good" },
-          { id: 5, text: "Excellent" }
-        ]
-      },
-      {
-        id: 2,
-        text: "How many hours of sleep did you get last night?",
-        type: "multiple-choice", 
-        required: true,
-        options: [
-          { id: 1, text: "Less than 4 hours" },
-          { id: 2, text: "4-6 hours" },
-          { id: 3, text: "6-8 hours" },
-          { id: 4, text: "More than 8 hours" }
-        ]
-      }
-    ];
-  };
+  // ✅ REMOVED: Mock questions function completely removed - only use real API data
+  
   const handleAnswerChange = (questionId, answer) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: answer
     }));
   };
-
   const handleSubmitAssessment = async () => {
     try {
-      console.log('AssessmentPage: Submitting assessment answers:', answers);
+      console.log('✅ AssessmentPage: Submitting assessment answers:', answers);
+      
+      if (!currentAssessment || !currentAssessment.id) {
+        alert('No assessment selected');
+        return;
+      }
       
       // Validate required questions
       const requiredQuestions = assessmentQuestions.filter(q => q.required);
-      const missingAnswers = requiredQuestions.filter(q => !answers[q.id]);
+      const missingAnswers = requiredQuestions.filter(q => !answers[q.QuestionId || q.id]);
       
       if (missingAnswers.length > 0) {
         alert('Please answer all required questions before submitting.');
         return;
       }
       
-      // Transform answers to the format expected by the API
-      const formattedAnswers = Object.entries(answers).map(([questionId, selectedOptionId]) => ({
-        questionId: parseInt(questionId),
-        selectedOptionId: selectedOptionId
-      }));
+      // ✅ ĐÚNG: Submit theo format backend Azure mong đợi
+      console.log('🎯 Submitting to survey ID:', currentAssessment.id);
+      console.log('📤 Raw answers:', answers);
       
-      console.log('AssessmentPage: Formatted answers:', formattedAnswers);
+      const response = await ApiService.submitSurveyAnswers(currentAssessment.id, answers);
       
-      // Submit assessment answers
-      const response = await ApiService.submitSurveyAnswer({
-        surveyId: currentAssessment.id,
-        userId: ApiService.getCurrentUserId(),
-        answers: formattedAnswers
-      });
-      
-      console.log('AssessmentPage: Submission response:', response);
-      
-      if (response && response.success) {
-        const score = response.data?.score || 'N/A';
-        const totalPoints = response.data?.totalPoints || 100;
-        const percentage = response.data?.percentage || 0;
+      console.log('✅ Submission successful:', response);      
+      if (response.success) {
+        const score = response.data?.Score || response.data?.score || 'N/A';
+        const totalPoints = response.data?.TotalPoints || response.data?.totalPoints || 100;
+        const percentage = response.data?.Percentage || response.data?.percentage || 0;
         
         alert(`Assessment submitted successfully! Your score: ${score}/${totalPoints} (${percentage}%)`);
         
@@ -302,17 +236,19 @@ const AssessmentPage = () => {
           assessment.id === currentAssessment.id 
             ? { ...assessment, completed: true, score: score, lastTaken: new Date() }
             : assessment
-        ));        // Go back to assessments list
-        setCurrentAssessment(null);
+        ));
+        
+        // Reset state        setCurrentAssessment(null);
         setSelectedAssessment(null);
         setAssessmentQuestions([]);
         setAnswers({});
       } else {
-        throw new Error(response?.message || 'Submission failed');
+        alert('Submission failed: ' + (response.message || 'Unknown error'));
       }
     } catch (error) {
       console.error('Failed to submit assessment:', error);
-      alert('Failed to submit assessment. Please try again.');    }
+      alert('Failed to submit assessment. Please try again.');
+    }
   };
 
   const renderAssessmentQuestions = () => {
@@ -441,27 +377,38 @@ const AssessmentPage = () => {
       <div className="assessment-container">        <div className="assessment-header">
           <h1>Recovery Assessments</h1>
           <p>Track your progress and evaluate your recovery journey with our comprehensive assessments</p>
-          
-          {/* Debug: Test API Connection Button */}
+            {/* Debug: Test API Connection Button */}
           <div className="assessment-debug-section" style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
             <h4 style={{ margin: '0 0 0.5rem 0', color: '#495057' }}>🔧 Debug Tools</h4>
-            <button 
-              onClick={testApiConnection}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.875rem'
-              }}
-            >
-              🧪 Test API Connection
-            </button>
-            <small style={{ display: 'block', marginTop: '0.5rem', color: '#6c757d' }}>
-              Click to test if backend APIs are working. Check browser console for detailed logs.
-            </small>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button 
+                onClick={testApiConnection}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                🧪 Test API Connection
+              </button>
+              <button 
+                onClick={() => setShowDatabaseTest(!showDatabaseTest)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'                }}
+              >
+                🗄️ {showDatabaseTest ? 'Hide' : 'Test'} Database Structure
+              </button>
+            </div>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { API_CONFIG } from '../config';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
-// Đảm bảo endpoints match với backend controllers
+// ✅ ĐÚNG: Endpoints match với backend Azure controllers
 const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: '/auth/login',
@@ -14,17 +14,20 @@ const API_ENDPOINTS = {
   // Category endpoints
   CATEGORIES: '/category',
   
-  // Survey endpoints
-  SURVEYS: '/surveys',
-  SURVEY_BY_ID: (id) => `/surveys/${id}`,
-  USER_SURVEYS: (userId) => `/surveys/user/${userId}`,
-  SUITABLE_SURVEYS: (userId) => `/surveys/suitable/${userId}`,
-  SURVEY_STATUS: (userId) => `/surveys/status/${userId}`,  // Survey Question endpoints
-  SURVEY_QUESTIONS: (surveyId) => `/surveyquestion/${surveyId}`,
-  SURVEY_DETAIL: (surveyId) => `/surveys/${surveyId}`,
+  // ✅ ĐÚNG: Survey endpoints theo backend structure
+  SURVEYS: '/api/surveys',
+  SURVEY_BY_ID: (id) => `/api/surveys/${id}`,
+  SURVEY_SUBMIT: (id) => `/api/surveys/${id}/submit`,
+  SUITABLE_SURVEYS: '/api/surveys/get-suitable',
+  USER_SURVEYS: (userId) => `/api/surveys/user/${userId}`,
+  SURVEY_STATUS: (userId) => `/api/surveys/status/${userId}`,
+  
+  // Survey Question endpoints (nếu cần riêng biệt)
+  SURVEY_QUESTIONS: (surveyId) => `/api/surveys/${surveyId}/questions`,
+  SURVEY_DETAIL: (surveyId) => `/api/surveys/${surveyId}`,
   
   // Survey Answer endpoints
-  SURVEY_ANSWERS: '/surveyanswer',
+  SURVEY_ANSWERS: '/api/surveyanswer',
   // User endpoints
   USER_PROFILE: '/users/me',
   UPDATE_PROFILE: '/users/profile',
@@ -424,61 +427,14 @@ class ApiService {
     } catch (error) {
       console.warn('getSurveyStatus API call failed:', error);
       throw error;
-    }  }
-  // Courses methods - CẢI THIỆN
+    }  }  // Courses methods - CẢI THIỆN
   async getCourses() {
     try {
       return await this.api.get(API_ENDPOINTS.COURSES);
     } catch (error) {
-      console.warn('getCourses API call failed, using mock data');
-      return {
-        success: true,
-        data: [
-          {
-            id: 1,
-            title: 'Recovery Fundamentals',
-            description: 'Master the essential concepts and strategies for successful addiction recovery.',
-            instructor: 'Dr. Sarah Johnson',
-            duration: '8 weeks',
-            lessons: 24,
-            students: 1250,
-            rating: 4.9,
-            level: 'Beginner',
-            price: 'Free',
-            enrolled: true,
-            progress: 65
-          },
-          {
-            id: 2,
-            title: 'Advanced Recovery Strategies',
-            description: 'Deep dive into advanced techniques for maintaining long-term sobriety.',
-            instructor: 'Dr. Michael Chen',
-            duration: '6 weeks',
-            lessons: 18,
-            students: 850,
-            rating: 4.8,
-            level: 'Intermediate',
-            price: 'Free',
-            enrolled: false,
-            progress: 0
-          },
-          {
-            id: 3,
-            title: 'Family Support Systems',
-            description: 'Learn how to build and maintain strong family support networks.',
-            instructor: 'Dr. Lisa Martinez',
-            duration: '4 weeks',
-            lessons: 12,
-            students: 650,
-            rating: 4.7,
-            level: 'Beginner',
-            price: 'Free',
-            enrolled: false,
-            progress: 0
-          }
-        ]
-      };
-    }  }
+      console.error('getCourses API call failed:', error);
+      return createErrorResponse(error, 'Failed to fetch courses');
+    }}
 
   // Counseling
   async getCounselingSlots() {
@@ -579,6 +535,53 @@ class ApiService {
     console.log('🧪 Endpoint test results:', results);
     return results;
   }
+
+  // ✅ ĐÚNG: Submit survey answers theo format backend Azure
+  async submitSurveyAnswers(surveyId, answers) {
+    try {
+      console.log('🎯 Submitting survey answers:', { surveyId, answers });
+      
+      // ✅ ĐÚNG: Format theo SubmitSurveyRequestDto backend mong đợi
+      const submitData = {
+        Answers: Object.entries(answers).map(([questionId, answerId]) => ({
+          QuestionId: questionId,
+          SelectedAnswerId: answerId
+        }))
+      };
+      
+      console.log('📤 Submit data format:', submitData);
+      
+      const response = await this.api.post(API_ENDPOINTS.SURVEY_SUBMIT(surveyId), submitData);
+      
+      console.log('✅ Survey submission response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to submit survey answers:', error);
+      throw error;
+    }
+  }
+
+  // ✅ ĐÚNG: Get survey by ID với Questions đầy đủ 
+  async getSurveyById(surveyId) {
+    try {
+      console.log('🔍 Fetching survey details for ID:', surveyId);
+      
+      const response = await this.api.get(API_ENDPOINTS.SURVEY_BY_ID(surveyId));
+      
+      console.log('📥 Survey detail response:', response);
+      
+      // ✅ Backend trả về SurveyDetailDto với Questions array
+      if (response.success && response.data) {
+        return response.data; // Đã có Questions, Answers với PascalCase
+      }
+      
+      throw new Error('Invalid survey response format');
+    } catch (error) {
+      console.error('❌ Failed to get survey by ID:', error);
+      throw error;
+    }  }
+
+  // ...existing code...
 }
 
 const apiService = new ApiService();

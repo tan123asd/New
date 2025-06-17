@@ -37,19 +37,9 @@ const Dashboard = () => {
       if (data.success) {
         setDashboardData(data.data);
       }
-      
-      // Mock data for upcoming events and achievements vẫn giữ nguyên
-      setUpcomingEvents([
-        { id: 1, title: 'Counseling Session', date: '2025-06-18', time: '10:00 AM', type: 'counseling' },
-        { id: 2, title: 'Group Therapy', date: '2025-06-19', time: '2:00 PM', type: 'group' },
-        { id: 3, title: 'Assessment Review', date: '2025-06-20', time: '11:00 AM', type: 'assessment' }
-      ]);
-      
-      setRecentAchievements([
-        { id: 1, title: '7 Days Sober', icon: '🏆', date: '2025-06-10' },
-        { id: 2, title: 'Completed Module 1', icon: '📚', date: '2025-06-15' },
-        { id: 3, title: 'First Counseling Session', icon: '💪', date: '2025-06-16' }
-      ]);
+        // Load events and achievements from API if needed
+      // setUpcomingEvents([]);
+      // setRecentAchievements([]);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {

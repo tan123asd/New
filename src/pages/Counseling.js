@@ -76,107 +76,11 @@ const Counseling = () => {
   const fetchData = async () => {
     try {
       const counselorsData = await ApiService.getCounselors();
-      setCounselors(counselorsData);
-    } catch (error) {
+      setCounselors(counselorsData);    } catch (error) {
       console.error('Failed to fetch counseling data:', error);
       
-      // Enhanced mock data with more details
-      setCounselors([
-        {
-          id: 1,
-          name: 'Dr. Sarah Johnson',
-          title: 'Licensed Clinical Psychologist',
-          specialty: ['Addiction Recovery', 'CBT', 'Trauma Therapy'],
-          category: 'addiction',
-          rating: 4.9,
-          reviewCount: 127,
-          experience: '12 years',
-          education: 'PhD in Clinical Psychology, Harvard',
-          languages: ['English', 'Spanish'],
-          availability: 'Mon-Fri 9AM-5PM',
-          nextAvailable: 'Today at 2:00 PM',
-          sessionTypes: ['Video', 'Phone', 'In-person'],
-          bio: 'Dr. Johnson specializes in evidence-based treatments for addiction and co-occurring mental health disorders. She has helped over 500 clients achieve lasting recovery.',
-          price: '$150/session',
-          verified: true,
-          image: '/api/placeholder/150/150'
-        },
-        {
-          id: 2,
-          name: 'Dr. Michael Chen',
-          title: 'Addiction Counselor & Therapist',
-          specialty: ['Substance Abuse', 'Group Therapy', 'Mindfulness'],
-          category: 'addiction',
-          rating: 4.8,
-          reviewCount: 89,
-          experience: '8 years',
-          education: 'MA in Addiction Counseling, UCLA',
-          languages: ['English', 'Mandarin'],
-          availability: 'Tue-Sat 10AM-6PM',
-          nextAvailable: 'Tomorrow at 10:00 AM',
-          sessionTypes: ['Video', 'Phone'],
-          bio: 'Specializing in holistic approaches to addiction recovery, Dr. Chen combines traditional therapy with mindfulness practices.',
-          price: '$120/session',
-          verified: true,
-          image: '/api/placeholder/150/150'
-        },
-        {
-          id: 3,
-          name: 'Dr. Emily Rodriguez',
-          title: 'Licensed Social Worker',
-          specialty: ['Depression', 'Anxiety', 'Life Transitions'],
-          category: 'depression',
-          rating: 4.9,
-          reviewCount: 156,
-          experience: '10 years',
-          education: 'MSW in Clinical Social Work, NYU',
-          languages: ['English', 'Spanish', 'Portuguese'],
-          availability: 'Mon-Thu 8AM-4PM',
-          nextAvailable: 'Friday at 11:00 AM',
-          sessionTypes: ['Video', 'Phone', 'In-person'],
-          bio: 'Dr. Rodriguez provides compassionate care for individuals struggling with depression, anxiety, and major life changes.',
-          price: '$130/session',
-          verified: true,
-          image: '/api/placeholder/150/150'
-        },
-        {
-          id: 4,
-          name: 'Dr. James Wilson',
-          title: 'Trauma Specialist',
-          specialty: ['PTSD', 'Trauma Recovery', 'EMDR'],
-          category: 'trauma',
-          rating: 4.7,
-          reviewCount: 94,
-          experience: '15 years',
-          education: 'PhD in Trauma Psychology, Stanford',
-          languages: ['English'],
-          availability: 'Wed-Sun 12PM-8PM',
-          nextAvailable: 'Monday at 3:00 PM',
-          sessionTypes: ['Video', 'In-person'],
-          bio: 'Dr. Wilson is a leading expert in trauma recovery, specializing in EMDR and other evidence-based trauma treatments.',
-          price: '$180/session',          verified: true,
-          image: '/api/placeholder/150/150'
-        }
-      ]);
-
-      // Mock appointments data commented out for now
-      // setAppointments([
-      //   {
-      //     id: 1,
-      //     counselor: 'Dr. Sarah Johnson',
-      //     date: '2025-06-18',      //     time: '10:00 AM',
-      //     type: 'video',
-      //     status: 'confirmed'
-      //   },
-      //   {
-      //     id: 2,
-      //     counselor: 'Dr. Michael Chen',
-      //     date: '2025-06-20',
-      //     time: '2:00 PM',
-      //     type: 'phone',
-      //     status: 'pending'
-      //   }
-      // ]);
+      // No fallback mock data - show empty state or error message
+      setCounselors([]);
     } finally {
       setLoading(false);
     }

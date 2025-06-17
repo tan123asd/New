@@ -46,22 +46,13 @@ const ProfilePage = () => {
         name: hookProfile.fullname || hookProfile.name || '',
         email: hookProfile.email || '',
         phone: hookProfile.phone || '',
-        dateOfBirth: hookProfile.dateOfBirth || hookProfile.birthDate || '',
-        emergencyContact: hookProfile.emergencyContact || '',
+        dateOfBirth: hookProfile.dateOfBirth || hookProfile.birthDate || '',        emergencyContact: hookProfile.emergencyContact || '',
         sobrietyDate: hookProfile.sobrietyDate || '',
         bio: hookProfile.bio || hookProfile.description || ''
       });
     } else if (profileError) {
-      // Fallback to mock data when API fails
-      setProfile({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        phone: '(555) 123-4567',
-        dateOfBirth: '1990-01-15',
-        emergencyContact: 'Jane Doe - (555) 987-6543',
-        sobrietyDate: '2023-03-15',
-        bio: 'I am committed to my recovery journey and helping others along the way.'
-      });
+      // No fallback mock data - handle error appropriately
+      console.error('Failed to load profile data:', profileError);
     }
   }, [hookProfile, profileError]);
 
