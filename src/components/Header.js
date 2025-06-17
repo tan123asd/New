@@ -24,9 +24,15 @@ const Header = () => {
         setUser({ name: 'User', email: 'user@example.com' });
       }
     }
-  };
-  // Function to check authentication status
+  };  // Function to check authentication status
   const checkAuthStatus = () => {
+    // Safeguard để tránh infinite calls
+    if (window._authCheckInProgress) {
+      console.log('Auth check already in progress, skipping...');
+      return;
+    }
+    window._authCheckInProgress = true;
+    
     // Check both possible token keys for debugging
     const token = localStorage.getItem('accessToken') || localStorage.getItem('authToken');
     const userData = localStorage.getItem('user');
@@ -49,27 +55,42 @@ const Header = () => {
           setUser(user);
         } catch (error) {
           console.error('Error parsing user data:', error);
+          // Fallback user data
+          setUser({ name: 'User', email: token });
         }
+      } else {
+        // If no user data in localStorage, try to fetch from API
+        fetchUserProfile();
       }
-      
-      fetchUserProfile();
     } else {
-      console.log('No token found, staying logged out'); // Debug log
+      console.log('No token found, setting isLoggedIn to false'); // Debug log
       setIsLoggedIn(false);
       setUser(null);
-    }
+    }    
+    // Cleanup safeguard sau khi xong
+    setTimeout(() => {
+      window._authCheckInProgress = false;
+    }, 100);
   };
+
   useEffect(() => {
     checkAuthStatus();
-  }, [location.pathname]); // Re-check when route changes
-
+  }, []); // Chỉ chạy 1 lần khi mount
   // Listen for custom login event
   useEffect(() => {
     const handleLoginSuccess = () => {
-      console.log('Login success event received, rechecking auth status');
-      setTimeout(() => {
-        checkAuthStatus();
-      }, 100);
+      console.log('Login success event received, updating auth status');
+      // Chỉ update state trực tiếp, không gọi checkAuthStatus
+      const token = localStorage.getItem('accessToken');
+      const userData = localStorage.getItem('user');
+      if (token && userData) {
+        setIsLoggedIn(true);
+        try {
+          setUser(JSON.parse(userData));
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+      }
     };
 
     window.addEventListener('loginSuccess', handleLoginSuccess);

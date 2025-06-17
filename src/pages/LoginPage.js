@@ -97,12 +97,16 @@ const LoginPage = () => {
           
           // Dispatch custom event to notify Header about login success
           window.dispatchEvent(new CustomEvent('loginSuccess'));
-          
-          // Navigate to dashboard or return URL
+            // Navigate to dashboard or return URL
           const returnUrl = location.state?.from?.pathname || '/dashboard';
-          setTimeout(() => {
-            navigate(returnUrl, { replace: true });
-          }, 200);
+          // Tránh navigate nếu đã ở trang đích
+          if (location.pathname !== returnUrl) {
+            setTimeout(() => {
+              navigate(returnUrl, { replace: true });
+            }, 200);
+          } else {
+            console.log('Already at target page, skipping navigation');
+          }
         } else {
           console.error('Login failed - invalid response structure:', response);
           NotificationService.error(response.message || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.');

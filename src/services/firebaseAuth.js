@@ -16,8 +16,7 @@ class FirebaseAuthService {
       console.warn('FirebaseAuthService: Firebase not available, service disabled');
       return;
     }
-    
-    // Listen for auth state changes
+      // Listen for auth state changes
     onAuthStateChanged(auth, (user) => {
       this.user = user;
       this.isInitialized = true;
@@ -26,16 +25,20 @@ class FirebaseAuthService {
         console.log('Firebase: User signed in:', user.email);
         // Get the Firebase token and save it
         user.getIdToken().then(token => {
-          localStorage.setItem('accessToken', token);
-          localStorage.setItem('user', JSON.stringify({
-            id: user.uid,
-            email: user.email,
-            name: user.displayName || user.email.split('@')[0],
-            role: 'user' // Default role
-          }));
-          
-          // Dispatch login success event
-          window.dispatchEvent(new CustomEvent('loginSuccess'));
+          // Chỉ update localStorage nếu thực sự thay đổi
+          const currentToken = localStorage.getItem('accessToken');
+          if (currentToken !== token) {
+            localStorage.setItem('accessToken', token);
+            localStorage.setItem('user', JSON.stringify({
+              id: user.uid,
+              email: user.email,
+              name: user.displayName || user.email.split('@')[0],
+              role: 'user' // Default role
+            }));
+            
+            // Chỉ dispatch event khi có thay đổi thực sự
+            window.dispatchEvent(new CustomEvent('loginSuccess'));
+          }
         });
       } else {
         console.log('Firebase: User signed out');
