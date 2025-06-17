@@ -1,336 +1,311 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faSearch,
-  faFilter,
-  faChevronRight,
-  faBook,
-  faClipboardCheck,
-} from "@fortawesome/free-solid-svg-icons";
-import "./EducationHub.css";
-
-// Mock data for courses
-const coursesData = [
-  {
-    id: 1,
-    title: "Nhận Biết Ma Túy Cho Phụ Huynh",
-    description:
-      "Học cách nhận biết các loại ma túy phổ biến và tác động của chúng để giúp bảo vệ con cái bạn.",
-    level: "Cơ bản",
-    duration: "2 giờ",
-    category: "parents",
-    image:
-      "https://placehold.co/300x200/e8f5e9/2D7DD2?text=Parent+Education",
-  },
-  {
-    id: 2,
-    title: "Giao Tiếp Hiệu Quả Với Thanh Thiếu Niên",
-    description:
-      "Phát triển kỹ năng thảo luận về lạm dụng chất gây nghiện với thanh thiếu niên theo cách không đối đầu.",
-    level: "Trung cấp",
-    duration: "3 giờ",
-    category: "parents",
-    image:
-      "https://placehold.co/300x200/e8f5e9/2D7DD2?text=Teen+Communication",
-  },
-  {
-    id: 3,
-    title: "Hiểu Về Áp Lực Bạn Bè",
-    description:
-      "Dành cho học sinh: Học các chiến lược để nhận biết và chống lại áp lực tiêu cực từ bạn bè.",
-    level: "Cơ bản",
-    duration: "1.5 giờ",
-    category: "students",
-    image:
-      "https://placehold.co/300x200/e8f5e9/2D7DD2?text=Peer+Pressure",
-  },
-  {
-    id: 4,
-    title: "Cơ Chế Đối Phó Lành Mạnh",
-    description:
-      "Khám phá những cách tích cực để đối phó với căng thẳng và lo âu mà không cần dùng đến chất gây nghiện.",
-    level: "Cơ bản",
-    duration: "2 giờ",
-    category: "students",
-    image:
-      "https://placehold.co/300x200/e8f5e9/2D7DD2?text=Healthy+Coping",
-  },
-  {
-    id: 5,
-    title: "Chiến Lược Can Thiệp Trong Lớp Học",
-    description:
-      "Dành cho giáo viên: Học cách nhận biết học sinh có nguy cơ và cung cấp hỗ trợ phù hợp.",
-    level: "Nâng cao",
-    duration: "4 giờ",
-    category: "teachers",
-    image:
-      "https://placehold.co/300x200/e8f5e9/2D7DD2?text=Classroom+Strategies",
-  },
-  {
-    id: 6,
-    title: "Tạo Môi Trường Học Đường Hỗ Trợ",
-    description:
-      "Phát triển chiến lược để nuôi dưỡng một văn hóa không ma túy trong môi trường giáo dục.",
-    level: "Trung cấp",
-    duration: "3 giờ",
-    category: "teachers",
-    image:
-      "https://placehold.co/300x200/e8f5e9/2D7DD2?text=School+Environment",
-  },
-];
-
-// Surveys data
-const surveysData = [
-  {
-    id: 1,
-    title: "Khảo Sát ASSIST",
-    description:
-      "Bài kiểm tra sàng lọc về rượu, thuốc lá và chất gây nghiện - xác định mức độ rủi ro của bạn.",
-    duration: "10 phút",
-    questions: 8,
-    link: "/education/surveys/assist",
-  },
-  {
-    id: 2,
-    title: "Khảo Sát CRAFFT",
-    description:
-      "Công cụ sàng lọc cho thanh thiếu niên để đánh giá hành vi sử dụng rượu và ma túy có nguy cơ.",
-    duration: "5 phút",
-    questions: 6,
-    link: "/education/surveys/crafft",
-  },
-  {
-    id: 3,
-    title: "Đánh Giá Trước Chương Trình",
-    description:
-      "Đánh giá kiến thức của bạn trước khi tham gia chương trình phòng ngừa.",
-    duration: "15 phút",
-    questions: 15,
-    link: "/education/surveys/pre-program",
-  },
-  {
-    id: 4,
-    title: "Đánh Giá Sau Chương Trình",
-    description:
-      "Đo lường tiến bộ của bạn sau khi hoàn thành chương trình phòng ngừa.",
-    duration: "15 phút",
-    questions: 15,
-    link: "/education/surveys/post-program",
-  },
-];
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { FaBook, FaVideo, FaFileAlt, FaHeadphones, FaSearch, FaFilter } from 'react-icons/fa';
+import ApiService from '../services/api';
+import './EducationHub.css'; // Import the dedicated CSS file
 
 const EducationHub = () => {
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const groupParam = queryParams.get("group");
+  const [educationContent, setEducationContent] = useState([]);
+  const [filteredContent, setFilteredContent] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const [activeTab, setActiveTab] = useState("courses");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(
-    groupParam || "all"
-  );
-  const [filteredCourses, setFilteredCourses] = useState([]);
+  const categories = [
+    { id: 'all', name: 'All Content' },
+    { id: 'addiction', name: 'Understanding Addiction' },
+    { id: 'recovery', name: 'Recovery Process' },
+    { id: 'wellness', name: 'Mental Wellness' },
+    { id: 'support', name: 'Support Systems' },
+    { id: 'relapse', name: 'Relapse Prevention' }  ];
+
+  const fetchEducationContent = async () => {
+    try {
+      const content = await ApiService.getEducationContent();
+      setEducationContent(content);
+    } catch (error) {
+      console.error('Failed to fetch education content:', error);
+      // Mock data for demonstration
+      const mockContent = [
+        {
+          id: 1,
+          title: 'Understanding Addiction: The Science Behind It',
+          description: 'Learn about the neurological and psychological aspects of addiction.',
+          type: 'article',
+          category: 'addiction',
+          duration: '15 min read',
+          difficulty: 'Beginner',
+          thumbnail: '/api/placeholder/300/200'
+        },
+        {
+          id: 2,
+          title: 'Building a Strong Recovery Foundation',
+          description: 'Essential steps to create a solid foundation for your recovery journey.',
+          type: 'video',
+          category: 'recovery',
+          duration: '25 min',
+          difficulty: 'Intermediate',
+          thumbnail: '/api/placeholder/300/200'
+        },
+        {
+          id: 3,
+          title: 'Mindfulness and Mental Wellness',
+          description: 'Discover mindfulness techniques to support your mental health.',
+          type: 'audio',
+          category: 'wellness',
+          duration: '20 min',
+          difficulty: 'Beginner',
+          thumbnail: '/api/placeholder/300/200'
+        },
+        {
+          id: 4,
+          title: 'Creating Your Support Network',
+          description: 'How to build and maintain meaningful support relationships.',
+          type: 'article',
+          category: 'support',
+          duration: '12 min read',
+          difficulty: 'Beginner',
+          thumbnail: '/api/placeholder/300/200'
+        },
+        {
+          id: 5,
+          title: 'Recognizing and Preventing Relapse',
+          description: 'Identify warning signs and develop prevention strategies.',
+          type: 'video',
+          category: 'relapse',
+          duration: '30 min',
+          difficulty: 'Advanced',
+          thumbnail: '/api/placeholder/300/200'
+        },
+        {
+          id: 6,
+          title: 'Nutrition and Recovery',
+          description: 'The role of proper nutrition in supporting recovery.',
+          type: 'article',
+          category: 'wellness',
+          duration: '10 min read',
+          difficulty: 'Beginner',
+          thumbnail: '/api/placeholder/300/200'
+        }
+      ];
+      setEducationContent(mockContent);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterContent = useCallback(() => {
+    let filtered = educationContent;
+
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(item => item.category === selectedCategory);
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter(item =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredContent(filtered);
+  }, [educationContent, selectedCategory, searchTerm]);
 
   useEffect(() => {
-    filterCourses();
-  }, [searchQuery, selectedCategory]);
+    fetchEducationContent();
+  }, []);
 
-  const filterCourses = () => {
-    let filtered = coursesData;
+  useEffect(() => {
+    filterContent();
+  }, [filterContent]);
 
-    // Filter by category
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(
-        (course) => course.category === selectedCategory
-      );
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case 'video':
+        return <FaVideo className="text-red-500" />;
+      case 'audio':
+        return <FaHeadphones className="text-green-500" />;
+      case 'article':
+        return <FaFileAlt className="text-blue-500" />;
+      default:
+        return <FaBook className="text-purple-500" />;
     }
+  };
 
-    // Filter by search query
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (course) =>
-          course.title.toLowerCase().includes(query) ||
-          course.description.toLowerCase().includes(query)
-      );
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case 'Beginner':
+        return 'bg-green-100 text-green-800';
+      case 'Intermediate':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Advanced':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
-
-    setFilteredCourses(filtered);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    filterCourses();
-  };
-
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-  };
-
-  return (
-    <div className="education-hub">
-      <div className="page-header secondary-bg">
-        <div className="container">
-          <h1>Trung Tâm Giáo Dục</h1>
-          <p>
-            Truy cập khóa học, tài nguyên và đánh giá để củng cố kiến
-            thức phòng ngừa ma túy
-          </p>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading education content...</p>
         </div>
       </div>
+    );
+  }
 
-      <div className="container">
-        <div className="tab-navigation">
-          <button
-            className={`tab-btn ${
-              activeTab === "courses" ? "active" : ""
-            }`}
-            onClick={() => setActiveTab("courses")}>
-            <FontAwesomeIcon icon={faBook} /> Khóa Học
-          </button>
-          <button
-            className={`tab-btn ${
-              activeTab === "surveys" ? "active" : ""
-            }`}
-            onClick={() => setActiveTab("surveys")}>
-            <FontAwesomeIcon icon={faClipboardCheck} /> Khảo Sát &
-            Đánh Giá
-          </button>
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">Education Hub</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Expand your knowledge with our comprehensive library of educational resources designed to support your recovery journey.
+          </p>
         </div>
 
-        {activeTab === "courses" && (
-          <div className="courses-section">
-            <div className="filters-bar">
-              <form className="search-form" onSubmit={handleSearch}>
-                <div className="search-input">
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm khóa học..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <button type="submit">
-                    <FontAwesomeIcon icon={faSearch} />
-                  </button>
-                </div>
-              </form>
-
-              <div className="category-filters">
-                <span className="filter-label">
-                  <FontAwesomeIcon icon={faFilter} /> Lọc theo:
-                </span>
-                <div className="filter-buttons">
-                  <button
-                    className={`filter-btn ${
-                      selectedCategory === "all" ? "active" : ""
-                    }`}
-                    onClick={() => handleCategoryChange("all")}>
-                    Tất Cả
-                  </button>
-                  <button
-                    className={`filter-btn ${
-                      selectedCategory === "students" ? "active" : ""
-                    }`}
-                    onClick={() => handleCategoryChange("students")}>
-                    Cho Học Sinh
-                  </button>
-                  <button
-                    className={`filter-btn ${
-                      selectedCategory === "parents" ? "active" : ""
-                    }`}
-                    onClick={() => handleCategoryChange("parents")}>
-                    Cho Phụ Huynh
-                  </button>
-                  <button
-                    className={`filter-btn ${
-                      selectedCategory === "teachers" ? "active" : ""
-                    }`}
-                    onClick={() => handleCategoryChange("teachers")}>
-                    Cho Giáo Viên
-                  </button>
-                </div>
-              </div>
+        {/* Search and Filter */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search for topics, articles, videos..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
 
-            {filteredCourses.length > 0 ? (
-              <div className="grid">
-                {filteredCourses.map((course) => (
-                  <div className="course-card card" key={course.id}>
-                    <div className="course-image">
-                      <img src={course.image} alt={course.title} />
-                      <div className="course-level">
-                        {course.level}
-                      </div>
-                    </div>
-                    <div className="course-content">
-                      <h3>{course.title}</h3>
-                      <p className="course-description">
-                        {course.description}
-                      </p>
-                      <div className="course-meta">
-                        <span className="course-duration">
-                          {course.duration}
-                        </span>
-                      </div>
-                      <Link
-                        to={`/education/courses/${course.id}`}
-                        className="btn btn-primary">
-                        Bắt Đầu Khóa Học
-                      </Link>
+            {/* Category Filter */}
+            <div className="relative">
+              <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <select
+                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Featured Content */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Featured Content</h2>
+          <div className="bg-gradient-to-r from-blue-600 to-purple-700 rounded-lg p-8 text-white">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="text-3xl font-bold mb-4">Recovery Fundamentals Course</h3>
+                <p className="text-lg mb-6">
+                  A comprehensive 8-week course covering the essential aspects of addiction recovery, 
+                  from understanding triggers to building lasting habits.
+                </p>
+                <Link
+                  to="/courses/recovery-fundamentals"
+                  className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 inline-block"
+                >
+                  Start Course
+                </Link>
+              </div>
+              <div className="text-center">
+                <FaBook className="text-6xl mb-4 mx-auto opacity-80" />
+                <p className="text-lg">8 Modules • 40+ Resources • Certificate Available</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Grid */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
+              All Content ({filteredContent.length})
+            </h2>
+            <Link
+              to="/courses"
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              View All Courses →
+            </Link>
+          </div>
+
+          {filteredContent.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredContent.map((item) => (
+                <div key={item.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-300">
+                  <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                    <div className="text-white text-6xl opacity-80">
+                      {getTypeIcon(item.type)}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="no-results">
-                <h3>Không tìm thấy khóa học</h3>
-                <p>
-                  Hãy điều chỉnh tìm kiếm hoặc bộ lọc để tìm thấy
-                  những gì bạn đang tìm kiếm.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === "surveys" && (
-          <div className="surveys-section">
-            <div className="intro-card card secondary-bg">
-              <h2>Tại Sao Nên Làm Bài Tự Đánh Giá?</h2>
-              <p>
-                Các bài tự đánh giá giúp xác định các yếu tố rủi ro
-                tiềm ẩn và cung cấp các khuyến nghị được cá nhân hóa
-                cho việc giáo dục và hỗ trợ. Các câu trả lời của bạn
-                được bảo mật và có thể hướng dẫn hành trình phòng ngừa
-                của bạn.
-              </p>
-            </div>
-
-            <h2 className="section-title">
-              Các Bài Đánh Giá Hiện Có
-            </h2>
-
-            <div className="surveys-grid">
-              {surveysData.map((survey) => (
-                <div className="survey-card card" key={survey.id}>
-                  <div className="survey-content">
-                    <h3>{survey.title}</h3>
-                    <p>{survey.description}</p>
-                    <div className="survey-meta">
-                      <span>{survey.duration}</span>
-                      <span>{survey.questions} câu hỏi</span>
+                  
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(item.difficulty)}`}>
+                        {item.difficulty}
+                      </span>
+                      <div className="flex items-center text-gray-500 text-sm">
+                        {getTypeIcon(item.type)}
+                        <span className="ml-1">{item.duration}</span>
+                      </div>
                     </div>
-                    <Link to={survey.link} className="survey-link">
-                      Làm Khảo Sát{" "}
-                      <FontAwesomeIcon icon={faChevronRight} />
-                    </Link>
+                    
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+                      {item.title}
+                    </h3>
+                    
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                      {item.description}
+                    </p>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 capitalize">
+                        {categories.find(cat => cat.id === item.category)?.name}
+                      </span>
+                      <Link
+                        to={`/education/${item.id}`}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition duration-300"
+                      >
+                        {item.type === 'article' ? 'Read' : item.type === 'video' ? 'Watch' : 'Listen'}
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-12">
+              <FaBook className="text-6xl text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No content found</h3>
+              <p className="text-gray-500">Try adjusting your search terms or filters</p>
+            </div>
+          )}
+        </div>
+
+        {/* Call to Action */}
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Ready to dive deeper?</h2>
+          <p className="text-gray-600 mb-6">
+            Explore our structured courses designed to guide you through your recovery journey step by step.
+          </p>
+          <Link
+            to="/courses"
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 inline-block"
+          >
+            Browse All Courses
+          </Link>
+        </div>
       </div>
     </div>
   );

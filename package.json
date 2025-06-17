@@ -10,6 +10,8 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.10.0",
+    "firebase": "^11.9.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
@@ -18,12 +20,15 @@
     "styled-components": "^6.1.18",
     "tailwindcss": "^4.1.7",
     "web-vitals": "^2.1.4"
-  },
-  "scripts": {
+  },  "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "check-config": "node scripts/check-config.js",
+    "setup": "npm install && npm run check-config",
+    "dev": "npm start",
+    "build:prod": "npm run build && npm run check-config"
   },
   "eslintConfig": {
     "extends": [

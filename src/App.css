@@ -1,38 +1,65 @@
-.App {
-  text-align: center;
+/* CSS Variables - Available globally but no styles applied */
+:root {
+  /* Primary Colors */
+  --primary-color: #2563eb;
+  --primary-light: #eff6ff;
+  --primary-dark: #1d4ed8;
+  
+  /* Secondary Colors */
+  --secondary-color: #10b981;
+  --secondary-light: #ecfdf5;
+  --secondary-dark: #059669;
+  
+  /* Text Colors */
+  --text-dark: #1f2937;
+  --text-gray: #6b7280;
+  --text-light: #9ca3af;
+  
+  /* Background Colors */
+  --background-light: #f9fafb;
+  --background-gray: #f3f4f6;
+  
+  /* Border Colors */
+  --border-light: #e5e7eb;
+  --border-gray: #d1d5db;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Border Radius */
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+/* App-specific styles - Only apply to elements with .app-container class */
+.app-container {
+  /* Only App component specific styles here */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.app-container .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+/* App-specific utilities that don't interfere with pages */
+.app-container .grid-responsive {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .app-container .grid-responsive.grid-cols-2,
+  .app-container .grid-responsive.grid-cols-3 {
+    grid-template-columns: 1fr;
   }
 }

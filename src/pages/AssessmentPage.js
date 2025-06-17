@@ -1,523 +1,539 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FaClipboardList, FaChartLine, FaCheckCircle, FaClock } from 'react-icons/fa';
+import { useSurveys } from '../hooks';
+import ApiService from '../services/api';
 import './AssessmentPage.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faArrowRight, faUserShield, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-
-
-// Default User Data (used if none of the above are uncommented)
-const currentUser = {
-  userId: 'user-1234',
-  role: 'user', // Example roles: 'user', 'counselor', 'admin'
-  age: 25, // Example age
-};
-
-// Manual Moderation Logic (Simulated)
-// This logic determines which assessment is appropriate based on user data,
-// mimicking a result from a manual moderation process.
-const getAppropriateAssessmentId = (user) => {
-  // Example logic: CRAFFT for users under 18, ASSIST for users 18 and older.
-  // This should be replaced with your actual moderation rules and return the Survey ID.
-  if (user.age < 18) {
-    return 'survey-crafft-id'; // Using a placeholder ID for CRAFFT
-  } else {
-    return 'survey-assist-id'; // Using a placeholder ID for ASSIST
-  }
-};
-
-// --- Data Structured According to ERD (Simulated Fetch) ---
-
-// Mock database of surveys, questions, and answers
-const mockDatabase = {
-  surveys: [
-    {
-      id: 'survey-assist-id',
-      title: 'ASSIST Assessment',
-      description: 'Alcohol, Smoking and Substance Involvement Screening Test',
-      type: 'ASSIST',
-      minAge: 18,
-      maxAge: 99,
-      createdBy: 'admin-1',
-      questions: [
-        {
-          id: 'assist-q1',
-          surveyId: 'survey-assist-id',
-          content: 'Trong 3 tháng qua, bạn đã sử dụng các chất sau bao nhiêu lần?',
-          questionOrder: 1,
-          // Substances are part of the question context, not separate entities in ERD
-          substances: [
-            'Rượu bia', 'Cần sa', 'Cocain', 'Thuốc lắc', 'Heroin',
-            'Thuốc an thần', 'Thuốc kích thích', 'Các chất khác'
-          ],
-          answers: [
-            { id: 'assist-q1-a1', questionId: 'assist-q1', answerText: 'Không bao giờ', score: 0 },
-            { id: 'assist-q1-a2', questionId: 'assist-q1', answerText: '1-2 lần', score: 1 },
-            { id: 'assist-q1-a3', questionId: 'assist-q1', answerText: '3-5 lần', score: 2 },
-            { id: 'assist-q1-a4', questionId: 'assist-q1', answerText: '6-9 lần', score: 3 },
-            { id: 'assist-q1-a5', questionId: 'assist-q1', answerText: '10 lần trở lên', score: 4 },
-          ]
-        },
-        {
-          id: 'assist-q2',
-          surveyId: 'survey-assist-id',
-          content: 'Trong 3 tháng qua, bạn đã từng cảm thấy thèm muốn hoặc thôi thúc sử dụng các chất trên không?',
-          questionOrder: 2,
-          answers: [
-            { id: 'assist-q2-a1', questionId: 'assist-q2', answerText: 'Không bao giờ', score: 0 },
-            { id: 'assist-q2-a2', questionId: 'assist-q2', answerText: 'Hiếm khi', score: 1 },
-            { id: 'assist-q2-a3', questionId: 'assist-q2', answerText: 'Thỉnh thoảng', score: 2 },
-            { id: 'assist-q2-a4', questionId: 'assist-q2', answerText: 'Thường xuyên', score: 3 },
-            { id: 'assist-q2-a5', questionId: 'assist-q2', answerText: 'Rất thường xuyên', score: 4 },
-          ]
-        },
-        {
-          id: 'assist-q3',
-          surveyId: 'survey-assist-id',
-          content: 'Trong 3 tháng qua, việc sử dụng các chất trên đã gây ra vấn đề về sức khỏe, xã hội, pháp lý hoặc tài chính cho bạn không?',
-          questionOrder: 3,
-          answers: [
-            { id: 'assist-q3-a1', questionId: 'assist-q3', answerText: 'Không', score: 0 },
-            { id: 'assist-q3-a2', questionId: 'assist-q3', answerText: 'Có, nhưng không nghiêm trọng', score: 1 },
-            { id: 'assist-q3-a3', questionId: 'assist-q3', answerText: 'Có, ở mức độ trung bình', score: 2 },
-            { id: 'assist-q3-a4', questionId: 'assist-q3', answerText: 'Có, ở mức độ nghiêm trọng', score: 3 },
-          ]
-        },
-         {
-          id: 'assist-q4',
-          surveyId: 'survey-assist-id',
-          content: 'Trong 3 tháng qua, bạn có từng thất bại trong việc làm những gì thường được mong đợi ở bạn do sử dụng các chất trên không?',
-          questionOrder: 4,
-          answers: [
-            { id: 'assist-q4-a1', questionId: 'assist-q4', answerText: 'Không', score: 0 },
-            { id: 'assist-q4-a2', questionId: 'assist-q4', answerText: 'Có, nhưng không thường xuyên', score: 1 },
-            { id: 'assist-q4-a3', questionId: 'assist-q4', answerText: 'Có, thường xuyên', score: 2 },
-          ]
-        },
-        {
-          id: 'assist-q5',
-          surveyId: 'survey-assist-id',
-          content: 'Bạn bè hoặc người thân có từng bày tỏ lo ngại về việc sử dụng các chất của bạn không?',
-          questionOrder: 5,
-          answers: [
-            { id: 'assist-q5-a1', questionId: 'assist-q5', answerText: 'Không', score: 0 },
-            { id: 'assist-q5-a2', questionId: 'assist-q5', answerText: 'Có, nhưng không thường xuyên', score: 1 },
-            { id: 'assist-q5-a3', questionId: 'assist-q5', answerText: 'Có, thường xuyên', score: 2 },
-          ]
-        },
-        {
-          id: 'assist-q6',
-          surveyId: 'survey-assist-id',
-          content: 'Bạn đã từng cố gắng giảm hoặc ngừng sử dụng các chất trên nhưng không thành công không?',
-          questionOrder: 6,
-          answers: [
-            { id: 'assist-q6-a1', questionId: 'assist-q6', answerText: 'Không', score: 0 },
-            { id: 'assist-q6-a2', questionId: 'assist-q6', answerText: 'Có, nhưng không thường xuyên', score: 1 },
-            { id: 'assist-q6-a3', questionId: 'assist-q6', answerText: 'Có, thường xuyên', score: 2 },
-          ]
-        },
-        {
-          id: 'assist-q7',
-          surveyId: 'survey-assist-id',
-          content: 'Bạn đã từng sử dụng thuốc bằng đường tiêm chích không?',
-          questionOrder: 7,
-          answers: [
-            { id: 'assist-q7-a1', questionId: 'assist-q7', answerText: 'Không bao giờ', score: 0 },
-            { id: 'assist-q7-a2', questionId: 'assist-q7', answerText: 'Có, nhưng không trong 3 tháng qua', score: 1 },
-            { id: 'assist-q7-a3', questionId: 'assist-q7', answerText: 'Có, trong 3 tháng qua', score: 2 },
-          ]
-        },
-        // Add more ASSIST questions if needed
-      ].sort((a, b) => a.questionOrder - b.questionOrder), // Sort questions by order
-    },
-    {
-      id: 'survey-crafft-id',
-      title: 'CRAFFT Assessment',
-      description: 'A brief screening test for adolescent substance abuse',
-      type: 'CRAFFT',
-      minAge: 0,
-      maxAge: 17,
-      createdBy: 'admin-1',
-      questions: [
-        {
-          id: 'crafft-q1',
-          surveyId: 'survey-crafft-id',
-          content: 'Bạn đã từng lái xe trong khi đang say hoặc đang sử dụng chất gây nghiện không?',
-          questionOrder: 1,
-          answers: [
-            { id: 'crafft-q1-a1', questionId: 'crafft-q1', answerText: 'Không', score: 0 },
-            { id: 'crafft-q1-a2', questionId: 'crafft-q1', answerText: 'Có', score: 1 },
-          ]
-        },
-        {
-          id: 'crafft-q2',
-          surveyId: 'survey-crafft-id',
-          content: 'Bạn có từng sử dụng chất gây nghiện để thư giãn, cảm thấy tốt hơn về bản thân, hoặc hòa nhập với mọi người không?',
-          questionOrder: 2,
-          answers: [
-            { id: 'crafft-q2-a1', questionId: 'crafft-q2', answerText: 'Không', score: 0 },
-            { id: 'crafft-q2-a2', questionId: 'crafft-q2', answerText: 'Có', score: 1 },
-          ]
-        },
-        {
-          id: 'crafft-q3',
-          surveyId: 'survey-crafft-id',
-          content: 'Bạn có từng sử dụng chất gây nghiện khi ở một mình không?',
-          questionOrder: 3,
-          answers: [
-            { id: 'crafft-q3-a1', questionId: 'crafft-q3', answerText: 'Không', score: 0 },
-            { id: 'crafft-q3-a2', questionId: 'crafft-q3', answerText: 'Có', score: 1 },
-          ]
-        },
-        {
-          id: 'crafft-q4',
-          surveyId: 'survey-crafft-id',
-          content: 'Bạn có từng quên những việc bạn đã làm khi đang sử dụng chất gây nghiện không?',
-          questionOrder: 4,
-          answers: [
-            { id: 'crafft-q4-a1', questionId: 'crafft-q4', answerText: 'Không', score: 0 },
-            { id: 'crafft-q4-a2', questionId: 'crafft-q4', answerText: 'Có', score: 1 },
-          ]
-        },
-        {
-          id: 'crafft-q5',
-          surveyId: 'survey-crafft-id',
-          content: 'Gia đình hoặc bạn bè có từng nói với bạn rằng bạn nên giảm bớt việc sử dụng chất gây nghiện không?',
-          questionOrder: 5,
-          answers: [
-            { id: 'crafft-q5-a1', questionId: 'crafft-q5', answerText: 'Không', score: 0 },
-            { id: 'crafft-q5-a2', questionId: 'crafft-q5', answerText: 'Có', score: 1 },
-          ]
-        },
-        {
-          id: 'crafft-q6',
-          surveyId: 'survey-crafft-id',
-          content: 'Bạn có từng gặp rắc rối khi đang sử dụng chất gây nghiện không?',
-          questionOrder: 6,
-          answers: [
-            { id: 'crafft-q6-a1', questionId: 'crafft-q6', answerText: 'Không', score: 0 },
-            { id: 'crafft-q6-a2', questionId: 'crafft-q6', answerText: 'Có', score: 1 },
-          ]
-        },
-        // Add more CRAFFT questions if needed
-      ].sort((a, b) => a.questionOrder - b.questionOrder), // Sort questions by order
-    },
-  ],
-};
-
-// Simulate fetching a survey and its questions/answers from the "database"
-const fetchSurveyData = (surveyId) => {
-  return new Promise((resolve, reject) => {
-    // Simulate API call delay
-    setTimeout(() => {
-      const survey = mockDatabase.surveys.find(s => s.id === surveyId);
-      if (survey) {
-        // In a real app, you might fetch questions and answers separately
-        // Here, we assume the survey object includes nested questions and answers
-        resolve(survey);
-      } else {
-        reject(`Survey with ID ${surveyId} not found`);
-      }
-    }, 500); // Simulate network latency
-  });
-};
-
-// --- AssessmentPage Component ---
 
 const AssessmentPage = () => {
-  const [currentSurvey, setCurrentSurvey] = useState(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  // userAnswers will store { questionId: answerId }
-  const [userAnswers, setUserAnswers] = useState({});
-  const [stage, setStage] = useState('loading'); // 'loading', 'questions', 'results', 'error'
-  const [results, setResults] = useState(null); // Store calculated results
-
-  // Fetch the appropriate survey when the component mounts
-  useEffect(() => {
-    const appropriateSurveyId = getAppropriateAssessmentId(currentUser);
-    fetchSurveyData(appropriateSurveyId)
-      .then(survey => {
-        setCurrentSurvey(survey);
-        setStage('questions'); // Move to questions stage
-      })
-      .catch(err => {
-        console.error('Error fetching survey:', err);
-        // setError(err); // Optional: store error details
-        setStage('error'); // Move to error stage
-      });
-  }, []); // Empty dependency array means this effect runs only once on mount
-
-  const handleAnswerSelect = (questionId, answerId) => {
-    setUserAnswers({ ...userAnswers, [questionId]: answerId });
-  };
-
-  const calculateScoreAndResults = () => {
-    if (!currentSurvey) return null; // Should not happen if stage is 'results'
-
-    let totalScore = 0;
-    const userResponsesForSurveyResponsesTable = []; // Data structure for SurveyResponses
-    const userAnswersForUserSurveyAnswersTable = []; // Data structure for UserSurveyAnswers
-
-    // Calculate total score and prepare data for saving
-    currentSurvey.questions.forEach(question => {
-      const selectedAnswerId = userAnswers[question.id];
-      if (selectedAnswerId) {
-        const selectedAnswer = question.answers.find(a => a.id === selectedAnswerId);
-        if (selectedAnswer) {
-          totalScore += selectedAnswer.score;
-
-          // Prepare data for UserSurveyAnswers table
-          userAnswersForUserSurveyAnswersTable.push({
-             // Assuming a ResponseID will be generated on the backend after saving SurveyResponses
-            // responseId: 'generated-response-id',
-            answerId: selectedAnswer.id,
-            isSelected: true,
-            // questionId: question.id // May not be needed based on your ERD
-          });
-        }
-      }
-    });
-
-    // Determine Risk Level and Suggested Actions based on the survey type and total score
-    let riskLevel = 'Unknown';
-    let suggestedActions = 'No specific actions suggested.';
-
-    if (currentSurvey.type === 'ASSIST') {
-      // TODO: Implement actual ASSIST scoring and risk level determination logic
-      if (totalScore <= 3) {
-        riskLevel = 'Thấp';
-        suggestedActions = 'Nguy cơ thấp, không cần can thiệp';
-      } else if (totalScore <= 26) {
-        riskLevel = 'Trung bình';
-        suggestedActions = 'Nguy cơ trung bình, cần tư vấn ngắn';
-      } else {
-        riskLevel = 'Cao';
-        suggestedActions = 'Nguy cơ cao, cần can thiệp chuyên sâu';
-      }
-    } else if (currentSurvey.type === 'CRAFFT') {
-        // TODO: Implement actual CRAFFT scoring and risk level determination logic
-        // CRAFFT is typically scored by counting 'Yes' answers (score = 1)
-         if (totalScore <= 2) {
-            riskLevel = 'Thấp';
-            suggestedActions = 'Nguy cơ thấp, không cần can thiệp';
-         } else {
-            riskLevel = 'Cao';
-            suggestedActions = 'Nguy cơ cao, cần đánh giá chuyên sâu';
-         }
-    }
-
-    // Prepare data for SurveyResponses table
-    userResponsesForSurveyResponsesTable.push({
-      // id: 'generated-response-id', // Backend generates ID
-      surveyId: currentSurvey.id,
-      userId: currentUser.userId, // Assuming currentUser is available
-      totalScore: totalScore,
-      riskLevel: riskLevel, // Store the determined risk level
-      suggestedActions: suggestedActions, // Store the determined suggested actions
-      submittedAt: new Date().toISOString(), // Current timestamp
-    });
+  const [assessments, setAssessments] = useState([]);
+  const [currentAssessment, setCurrentAssessment] = useState(null);
+  const [answers, setAnswers] = useState({});
+    // New states for question management
+  const [assessmentQuestions, setAssessmentQuestions] = useState([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  
+  // Use custom hooks for better state management
+  const { surveys, loading: surveysLoading, error: surveysError, fetchSurveys } = useSurveys();useEffect(() => {
+    fetchAssessments();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // We only want to run this once on mount
+  // Enhanced data transformation with better backend response handling
+  const transformSurveyToAssessment = useCallback((survey) => {
+    // Handle different possible response formats from backend
+    const surveyId = survey.id || survey.surveyId || survey._id;
+    const surveyTitle = survey.title || survey.name || survey.surveyTitle || 'Untitled Assessment';
+    const surveyDescription = survey.description || survey.desc || survey.surveyDescription || 'Complete this assessment to track your progress';
+    
+    // Handle questions count from different possible fields
+    const questionCount = survey.questions?.length || 
+                         survey.questionCount || 
+                         survey.questionsCount || 
+                         survey.totalQuestions || 
+                         0;
+    
+    // Handle completion status from different possible fields
+    const isCompleted = survey.completed || 
+                       survey.isCompleted || 
+                       survey.status === 'completed' ||
+                       false;
+    
+    // Handle last taken date from different possible fields
+    const lastTakenDate = survey.lastTaken || 
+                         survey.lastCompleted || 
+                         survey.completedAt || 
+                         survey.updatedAt ||
+                         null;
+    
+    // Handle score from different possible fields
+    const assessmentScore = survey.score || 
+                           survey.totalScore || 
+                           survey.result?.score ||
+                           null;
 
     return {
-      totalScore,
-      riskLevel,
-      suggestedActions,
-      surveyResponsesData: userResponsesForSurveyResponsesTable[0], // Data for SurveyResponses table
-      userSurveyAnswersData: userAnswersForUserSurveyAnswersTable // Data for UserSurveyAnswers table
+      id: surveyId,
+      title: surveyTitle,
+      description: surveyDescription,
+      questions: questionCount,
+      duration: estimateDuration(questionCount),      completed: isCompleted,
+      lastTaken: lastTakenDate ? new Date(lastTakenDate) : null,
+      score: assessmentScore,
+      category: survey.category || survey.categoryId || 'general',
+      difficulty: survey.difficulty || survey.level || 'medium',
+      surveyData: survey // Keep original data for reference
     };
-  };
+  }, []); // Dependencies for useCallback
 
-  const handleNext = () => {
-    if (!currentSurvey) return; // Should not happen in 'questions' stage
-
-    const nextQuestionIndex = currentQuestionIndex + 1;
-    if (nextQuestionIndex < currentSurvey.questions.length) {
-      setCurrentQuestionIndex(nextQuestionIndex);
-    } else {
-      // Reached the end of questions, calculate and show results
-      const calculatedResults = calculateScoreAndResults();
-      setResults(calculatedResults);
-      setStage('results');
-      // TODO: Send results to backend here or in a separate effect/function
-      console.log('Assessment Completed. Results:', calculatedResults);
+  const fetchAssessments = async () => {
+    try {
+      console.log('AssessmentPage: Fetching assessments from API...');
+      
+      // Use the custom hook to fetch surveys
+      await fetchSurveys();
+      
+    } catch (error) {
+      console.error('Failed to fetch assessments:', error);
+      // Error handling is managed by the custom hook
     }
   };
-
-  const handleBack = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+  // Transform surveys data when it changes
+  useEffect(() => {
+    if (surveys && Array.isArray(surveys)) {
+      console.log('AssessmentPage: Raw surveys data:', surveys);
+      
+      const transformedAssessments = surveys.map(transformSurveyToAssessment);
+      
+      console.log('AssessmentPage: Transformed assessments:', transformedAssessments);
+      setAssessments(transformedAssessments);
+    } else if (surveysError) {
+      console.error('AssessmentPage: Error from surveys hook:', surveysError);      
+      // Use fallback mock data when API fails
+      setAssessments(getMockAssessments());
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [surveys, surveysError]);
+
+  const getMockAssessments = () => {
+    return [
+      {
+        id: 'mock-1',
+        title: 'Recovery Progress Assessment',
+        description: 'Evaluate your current progress in recovery',
+        questions: 15,
+        duration: '10-15 minutes',
+        completed: false,
+        lastTaken: null,
+        score: null,
+        category: 'recovery',
+        difficulty: 'medium'
+      },
+      {
+        id: 'mock-2',
+        title: 'Mental Health Check-in',
+        description: 'Assess your current mental health status',
+        questions: 20,
+        duration: '15-20 minutes',
+        completed: false,
+        lastTaken: null,
+        score: null,
+        category: 'mental-health',
+        difficulty: 'medium'
+      }
+    ];
   };
 
-  const handleReset = () => {
-    setCurrentSurvey(null); // Reset survey data
-    setCurrentQuestionIndex(0);
-    setUserAnswers({}); // Clear answers
-    setResults(null); // Clear results
-    setStage('loading'); // Go back to loading state to refetch
-    // Re-fetch the appropriate assessment based on current user
-    const appropriateSurveyId = getAppropriateAssessmentId(currentUser);
-     fetchSurveyData(appropriateSurveyId)
-      .then(survey => {
-        setCurrentSurvey(survey);
-        setStage('questions');
-      })
-      .catch(err => {
-        console.error('Error fetching survey on reset:', err);
-        // setError(err); // Optional: store error details
-        setStage('error');
-      });
+  // Enhanced duration estimation with more accurate calculations
+  const estimateDuration = (questionCount) => {
+    if (!questionCount || questionCount === 0) return '5-10 minutes';
+    
+    // More realistic estimation: 30-45 seconds per question
+    const minMinutes = Math.max(5, Math.ceil(questionCount * 0.5));
+    const maxMinutes = Math.max(minMinutes + 2, Math.ceil(questionCount * 0.75));
+    
+    return `${minMinutes}-${maxMinutes} minutes`;
+  };
+  const startAssessment = async (assessment) => {
+    await handleStartAssessment(assessment);
   };
 
-  // Render the main content based on the current stage (questions or results)
-  const renderMainContent = () => {
-    switch (stage) {
-      case 'loading':
-        return <div className="assessment-content">Đang tải khảo sát...</div>; // Loading state message
-      case 'error':
-        return <div className="assessment-content">Lỗi khi tải khảo sát. Vui lòng thử lại sau.</div>; // Error message
-      case 'questions':
-        if (!currentSurvey || !currentSurvey.questions[currentQuestionIndex]) {
-             // Should not happen if stage is 'questions' and no error
-            return <div className="assessment-content">Không tìm thấy câu hỏi.</div>; // Should not happen
+  const handleStartAssessment = async (assessment) => {
+    try {
+      console.log('AssessmentPage: Starting assessment:', assessment.id);
+      setLoadingQuestions(true);
+      
+      // Use the new getSurveyWithQuestions method to get both survey and questions
+      const response = await ApiService.getSurveyWithQuestions(assessment.id);
+      
+      if (response && response.success && response.data) {
+        const surveyData = response.data;
+        const questions = surveyData.questions || [];
+        
+        setAssessmentQuestions(questions);
+        
+        const detailedAssessment = {
+          ...assessment,
+          ...surveyData,
+          questions: questions
+        };
+        
+        console.log('AssessmentPage: Assessment with questions loaded:', detailedAssessment);
+        setCurrentAssessment(detailedAssessment);
+        setAnswers({});
+      } else {
+        throw new Error('Failed to load survey questions');
+      }
+    } catch (error) {
+      console.error('Failed to start assessment:', error);
+      
+      // Fallback: try to get questions separately
+      try {
+        const questionsResponse = await ApiService.getSurveyQuestions(assessment.id);
+        if (questionsResponse && questionsResponse.success) {
+          setAssessmentQuestions(questionsResponse.data || []);
+          setCurrentAssessment({
+            ...assessment,
+            questions: questionsResponse.data || []
+          });
+          setAnswers({});
+        } else {
+          throw new Error('Both endpoints failed');
         }
-        const currentQuestion = currentSurvey.questions[currentQuestionIndex];
-        const totalQuestions = currentSurvey.questions.length;
-
-        return (
-             <div className="assessment-content">
-                <div className="assessment-progress">
-                    <div className="progress-bar">
-                        <div
-                            className="progress-fill"
-                            style={{
-                                width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`
-                            }}
-                        />
-                    </div>
-                    <span className="progress-text">
-                        Câu hỏi {currentQuestionIndex + 1}/{totalQuestions}
-                    </span>
-                </div>
-
-                <div className="question-card">
-                    <div className="question-header">
-                        <h3>Câu hỏi {currentQuestionIndex + 1}: {currentQuestion.content}</h3>
-                        {currentQuestion.substances && (
-                            <div className="substances-list">
-                                {currentQuestion.substances.map((substance, index) => (
-                                    <span key={index} className="substance-tag">
-                                        {substance}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="options-grid">
-                        {currentQuestion.answers.map((answer) => (
-                            <button
-                                key={answer.id}
-                                className={`option-btn ${
-                                    userAnswers[currentQuestion.id] === answer.id
-                                        ? 'selected'
-                                        : ''
-                                }`}
-                                onClick={() => handleAnswerSelect(currentQuestion.id, answer.id)}
-                            >
-                                {answer.answerText}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="question-navigation">
-                        {currentQuestionIndex > 0 && (
-                            <button className="btn-back" onClick={handleBack}>
-                                <FontAwesomeIcon icon={faArrowLeft} />
-                                Quay lại
-                            </button>
-                        )}
-                        <button
-                            className="btn-next"
-                            onClick={handleNext}
-                            disabled={userAnswers[currentQuestion.id] === undefined}
-                        >
-                            {currentQuestionIndex === totalQuestions - 1 ? 'Xem kết quả' : 'Tiếp tục'}
-                            <FontAwesomeIcon icon={faArrowRight} />
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-      case 'results':
-           if (!results) {
-               // Should not happen if stage is 'results'
-              return <div className="assessment-content">Không có kết quả để hiển thị.</div>; // Should not happen
-           }
-        return (
-             <div className="assessment-content">
-               <div className="results-card">
-                  <h2>Kết Quả Đánh Giá</h2>
-                   {/* Display results based on calculated values */}
-                  <div className="score-section">
-                        <h3>Điểm Tổng: {results.totalScore}</h3>
-                        <div
-                          className="risk-level"
-                          style={{
-                            backgroundColor: results.riskLevel === 'Thấp' ? '#4caf50' : results.riskLevel === 'Trung bình' ? '#ff9800' : '#f44336' // Basic color logic
-                          }}
-                        >
-                          Mức độ nguy cơ: {results.riskLevel}
-                        </div>
-                        <p className="risk-description">
-                          Gợi ý hành động: {results.suggestedActions}
-                        </p>
-                      </div>
-
-                  <div className="results-actions">
-                    <button className="btn-primary" onClick={handleReset}>
-                      Làm lại đánh giá
-                    </button>
-                     {/* Optional: Add a button to navigate to more detailed results page or counseling booking */}
-                    {/* <button className="btn-secondary">Đặt lịch tư vấn</button> */}
-                  </div>
-                </div>
-            </div>
-          );
-      default:
-        return <div className="assessment-content">Đã xảy ra lỗi không xác định.</div>; // Default error state
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        // Use mock data as final fallback
+        const mockQuestions = getMockQuestions(assessment.id);
+        setAssessmentQuestions(mockQuestions);
+        setCurrentAssessment({
+          ...assessment,
+          questions: mockQuestions
+        });
+        setAnswers({});
+      }
+    } finally {
+      setLoadingQuestions(false);
     }
   };
 
-   // Define the Info section JSX
-   const infoSection = (
-    <div className="assessment-info">
-      <div className="info-card">
-        <FontAwesomeIcon icon={faUserShield} />
-        <h4>Bảo mật thông tin</h4>
-        <p>Tất cả thông tin của bạn sẽ được bảo mật và chỉ được sử dụng cho mục đích đánh giá.</p>
-      </div>
-      <div className="info-card">
-        <FontAwesomeIcon icon={faInfoCircle} />
-        <h4>Hướng dẫn</h4>
-        <p>Hãy trả lời trung thực để có kết quả đánh giá chính xác nhất.</p>
-      </div>
-    </div>
-  );
+  const getMockQuestions = (assessmentId) => {
+    // Mock questions for testing
+    return [
+      {
+        id: 1,
+        text: "How would you rate your overall mood today?",
+        type: "multiple-choice",
+        required: true,
+        options: [
+          { id: 1, text: "Very Poor" },
+          { id: 2, text: "Poor" },
+          { id: 3, text: "Fair" },
+          { id: 4, text: "Good" },
+          { id: 5, text: "Excellent" }
+        ]
+      },
+      {
+        id: 2,
+        text: "How many hours of sleep did you get last night?",
+        type: "multiple-choice", 
+        required: true,
+        options: [
+          { id: 1, text: "Less than 4 hours" },
+          { id: 2, text: "4-6 hours" },
+          { id: 3, text: "6-8 hours" },
+          { id: 4, text: "More than 8 hours" }
+        ]
+      }
+    ];
+  };
+  const handleAnswerChange = (questionId, answer) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: answer
+    }));
+  };
 
+  const handleSubmitAssessment = async () => {
+    try {
+      console.log('AssessmentPage: Submitting assessment answers:', answers);
+      
+      // Validate required questions
+      const requiredQuestions = assessmentQuestions.filter(q => q.required);
+      const missingAnswers = requiredQuestions.filter(q => !answers[q.id]);
+      
+      if (missingAnswers.length > 0) {
+        alert('Please answer all required questions before submitting.');
+        return;
+      }
+      
+      // Transform answers to the format expected by the API
+      const formattedAnswers = Object.entries(answers).map(([questionId, selectedOptionId]) => ({
+        questionId: parseInt(questionId),
+        selectedOptionId: selectedOptionId
+      }));
+      
+      console.log('AssessmentPage: Formatted answers:', formattedAnswers);
+      
+      // Submit assessment answers
+      const response = await ApiService.submitSurveyAnswer({
+        surveyId: currentAssessment.id,
+        userId: ApiService.getCurrentUserId(),
+        answers: formattedAnswers
+      });
+      
+      console.log('AssessmentPage: Submission response:', response);
+      
+      if (response && response.success) {
+        const score = response.data?.score || 'N/A';
+        const totalPoints = response.data?.totalPoints || 100;
+        const percentage = response.data?.percentage || 0;
+        
+        alert(`Assessment submitted successfully! Your score: ${score}/${totalPoints} (${percentage}%)`);
+        
+        // Update assessment as completed
+        setAssessments(prev => prev.map(assessment => 
+          assessment.id === currentAssessment.id 
+            ? { ...assessment, completed: true, score: score, lastTaken: new Date() }
+            : assessment
+        ));
+          // Go back to assessments list
+        setCurrentAssessment(null);
+        setAssessmentQuestions([]);
+        setAnswers({});
+      } else {
+        throw new Error(response?.message || 'Submission failed');
+      }
+    } catch (error) {
+      console.error('Failed to submit assessment:', error);
+      alert('Failed to submit assessment. Please try again.');    }
+  };
+
+  const renderAssessmentQuestions = () => {
+    if (loadingQuestions) {
+      return (
+        <div className="assessment-loading">
+          <div className="assessment-loading-spinner"></div>
+          <p>Loading questions...</p>
+        </div>
+      );
+    }
+
+    if (!assessmentQuestions || assessmentQuestions.length === 0) {
+      return (
+        <div className="assessment-no-questions">
+          <p>No questions available for this assessment.</p>          <button 
+            onClick={() => {
+              setCurrentAssessment(null);
+              setAssessmentQuestions([]);
+            }}
+            className="assessment-btn assessment-btn-secondary"
+          >
+            Back to Assessments
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="assessment-questions">
+        {assessmentQuestions.map((question, questionIndex) => (
+          <div key={question.id} className="assessment-question-container">
+            <div className="assessment-question-header">
+              <h3 className="assessment-question-title">
+                Question {questionIndex + 1} of {assessmentQuestions.length}
+              </h3>
+              {question.required && (
+                <span className="assessment-question-required-badge">Required</span>
+              )}
+            </div>
+            
+            <div className="assessment-question-text">
+              {question.text || question.questionText || 'Question text not available'}
+            </div>
+
+            <div className="assessment-question-options">
+              {question.options && Array.isArray(question.options) && question.options.length > 0 ? (
+                question.options.map((option, optionIndex) => {
+                  const optionValue = option.id || option;
+                  const optionText = option.text || option;
+                  
+                  return (
+                    <div 
+                      key={option.id || optionIndex} 
+                      className={`assessment-option ${answers[question.id] === optionValue ? 'selected' : ''}`}
+                      onClick={() => handleAnswerChange(question.id, optionValue)}
+                    >
+                      <div className="assessment-option-radio">
+                        {answers[question.id] === optionValue && <div className="assessment-option-radio-selected"></div>}
+                      </div>
+                      <span className="assessment-option-text">{optionText}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="assessment-text-input">
+                  <textarea
+                    value={answers[question.id] || ''}
+                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                    placeholder="Enter your response..."
+                    rows={3}
+                  />
+                </div>
+              )}
+            </div>
+            
+            {question.required && !answers[question.id] && (
+              <div className="assessment-question-required">* This field is required</div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Show loading state while fetching surveys
+  if (surveysLoading && assessments.length === 0) {
+    return (
+      <div className="assessment-page">
+        <div className="assessment-container">
+          <div className="text-center">
+            <div className="loading-spinner"></div>
+            <p>Loading assessments...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if there's an error and no fallback data
+  if (surveysError && assessments.length === 0) {
+    return (
+      <div className="assessment-page">
+        <div className="assessment-container">
+          <div className="text-center">
+            <div className="error-message">
+              <h2>Unable to Load Assessments</h2>
+              <p>There was an error loading your assessments. Please try again later.</p>
+              <button 
+                onClick={fetchAssessments}
+                className="btn btn-primary"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }  if (currentAssessment) {
+    return (
+      <div className="assessment-page">
+        <div className="assessment-container">
+          <div className="assessment-card">
+            <div className="assessment-header-info">
+              <h1>{currentAssessment.title}</h1>
+              <p>{currentAssessment.description}</p>
+              <div className="assessment-progress">
+                <span>Questions: {assessmentQuestions.length || 0}</span>
+                <span>Duration: {currentAssessment.duration}</span>
+              </div>
+            </div>
+            
+            {/* Render questions using the new method */}
+            {renderAssessmentQuestions()}
+
+            <div className="assessment-actions">              <button 
+                onClick={() => {
+                  setCurrentAssessment(null);
+                  setAssessmentQuestions([]);
+                  setAnswers({});
+                }}
+                className="assessment-btn assessment-btn-secondary"
+              >
+                Back to Assessments
+              </button>
+              <button 
+                onClick={handleSubmitAssessment}
+                className="assessment-btn assessment-btn-primary"
+                disabled={
+                  loadingQuestions || 
+                  (assessmentQuestions.some(q => q.required && !answers[q.id]))
+                }
+              >
+                {loadingQuestions ? 'Loading...' : 'Submit Assessment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="assessment-page">
-      <div className="assessment-header">
-         <div className="assessment-header-content">
-           <h1>{currentSurvey ? currentSurvey.title : 'Đánh Giá Nguy Cơ'}</h1>
-           <p>{currentSurvey ? currentSurvey.description : ''}</p>
-         </div>
-       </div>
-       <div className="assessment-container">
-          {renderMainContent()}
-          {/* Render the Info section below the main content if applicable stages */}
-          {(stage === 'questions' || stage === 'results') && infoSection}
-       </div>
+      <div className="assessment-container">
+        <div className="assessment-header">
+          <h1>Recovery Assessments</h1>
+          <p>Track your progress and evaluate your recovery journey with our comprehensive assessments</p>
+        </div>
 
+        <div className="assessment-grid">
+          {assessments.map((assessment) => (
+            <div key={assessment.id} className="assessment-card">
+              <div className="assessment-card-header">
+                <div className="assessment-card-icon">
+                  <FaClipboardList />
+                </div>
+                <div className="assessment-card-content">
+                  <h3 className="assessment-card-title">{assessment.title}</h3>
+                  <p className="assessment-card-description">{assessment.description}</p>
+                </div>
+              </div>
+              
+              <div className="assessment-card-meta">
+                <div className="assessment-meta-item">
+                  <FaClipboardList />
+                  <span>{assessment.questions} questions</span>
+                </div>
+                <div className="assessment-meta-item">
+                  <FaClock />
+                  <span>{assessment.duration}</span>
+                </div>
+              </div>
+              
+              {assessment.completed ? (
+                <div className="assessment-completed">
+                  <div className="assessment-score">
+                    <span className="assessment-score-label">Last completed:</span>
+                    <span className="assessment-score-value">{assessment.lastTaken}</span>
+                  </div>
+                  <div className="assessment-score">
+                    <span className="assessment-score-label">Score:</span>
+                    <span className="assessment-score-value assessment-score-number">{assessment.score}/100</span>
+                  </div>
+                  <div className="assessment-status">
+                    <FaCheckCircle />
+                    <span>Completed</span>
+                  </div>
+                  <button
+                    onClick={() => startAssessment(assessment)}
+                    className="assessment-btn assessment-btn-primary"
+                  >
+                    Retake Assessment
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => startAssessment(assessment)}
+                  className="assessment-btn assessment-btn-primary"
+                >
+                  Start Assessment
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="assessment-overview">
+          <h2 className="assessment-overview-title">Your Progress Overview</h2>
+          <div className="assessment-overview-grid">
+            <div className="assessment-overview-item">
+              <FaChartLine className="assessment-overview-icon" />
+              <h3 className="assessment-overview-item-title">Progress Tracking</h3>
+              <p className="assessment-overview-item-description">Monitor your recovery journey with regular assessments and detailed insights.</p>
+            </div>
+            <div className="assessment-overview-item">
+              <FaClipboardList className="assessment-overview-icon" />
+              <h3 className="assessment-overview-item-title">Personalized Insights</h3>
+              <p className="assessment-overview-item-description">Receive customized recommendations based on your assessment results.</p>
+            </div>
+            <div className="assessment-overview-item">
+              <FaCheckCircle className="assessment-overview-icon" />
+              <h3 className="assessment-overview-item-title">Goal Achievement</h3>
+              <p className="assessment-overview-item-description">Set and track goals to maintain motivation and celebrate milestones.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default AssessmentPage; 
+export default AssessmentPage;

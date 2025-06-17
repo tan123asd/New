@@ -1,71 +1,81 @@
-import React, { useState, useEffect } from 'react';
-import { surveyService } from '../api/services/surveyService';
+import React from 'react';
+import { FaCheckCircle, FaClock, FaExclamationTriangle } from 'react-icons/fa';
 
 const SurveyStatus = () => {
-    const [status, setStatus] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+  const surveys = [
+    {
+      id: 1,
+      title: 'Weekly Recovery Check-in',
+      status: 'completed',
+      completedDate: '2025-06-15',
+      nextDue: '2025-06-22'
+    },
+    {
+      id: 2,
+      title: 'Mental Health Assessment',
+      status: 'pending',
+      dueDate: '2025-06-18'
+    },
+    {
+      id: 3,
+      title: 'Progress Evaluation',
+      status: 'overdue',
+      dueDate: '2025-06-16'
+    }
+  ];
 
-    // Sử dụng userId cố định từ ví dụ của bạn
-    const sampleUserId = 'a0c8f4b2-3bcd-4c8c-998e-42c8c89f5cf9';
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed':
+        return <FaCheckCircle className="text-green-500" />;
+      case 'pending':
+        return <FaClock className="text-yellow-500" />;
+      case 'overdue':
+        return <FaExclamationTriangle className="text-red-500" />;
+      default:
+        return <FaClock className="text-gray-500" />;
+    }
+  };
 
-    const checkSurveyStatus = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            const response = await surveyService.checkStatus(sampleUserId);
-            setStatus(response);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Không thể kiểm tra trạng tháiádasdasd survey');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'overdue':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-    useEffect(() => {
-        checkSurveyStatus();
-    }, []);
-
-    return (
-        <div className="p-4">
-            <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
-                <div className="p-8">
-                    <div className="uppercase tracking-wide text-sm text-indigo-500 font-semibold">
-                        Trạng thái Survey
-                    </div>
-                    
-                    {loading && (
-                        <div className="mt-4 text-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
-                            <p className="mt-2 text-gray-600">Đang kiểm tra...</p>
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                            {error}
-                        </div>
-                    )}
-
-                    {status && !loading && (
-                        <div className="mt-4">
-                            <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
-                                {JSON.stringify(status, null, 2)}
-                            </pre>
-                        </div>
-                    )}
-
-                    <button
-                        onClick={checkSurveyStatus}
-                        disabled={loading}
-                        className="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-                    >
-                        {loading ? 'Đang kiểm tra...' : 'Kiểm tra lại trạng thái'}
-                    </button>
-                </div>
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Survey Status</h2>
+      <div className="space-y-4">
+        {surveys.map((survey) => (
+          <div key={survey.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+            <div className="flex items-center space-x-3">
+              {getStatusIcon(survey.status)}
+              <div>
+                <h3 className="font-medium text-gray-800">{survey.title}</h3>
+                <p className="text-sm text-gray-600">
+                  {survey.status === 'completed' 
+                    ? `Completed on ${survey.completedDate}` 
+                    : `Due: ${survey.dueDate || survey.nextDue}`
+                  }
+                </p>
+              </div>
             </div>
-        </div>
-    );
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(survey.status)}`}>
+              {survey.status.charAt(0).toUpperCase() + survey.status.slice(1)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
-export default SurveyStatus; 
+export default SurveyStatus;

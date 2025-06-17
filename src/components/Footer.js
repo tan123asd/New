@@ -1,104 +1,132 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faFacebook,
-  faTwitter,
-  faInstagram,
-} from "@fortawesome/free-brands-svg-icons";
-import "./Footer.css";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import './Footer.css'; // Import the dedicated CSS file
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
-
   return (
     <footer className="footer">
-      <div className="container">
-        <div className="footer-content">
-          <div className="footer-logo">
-            <h2>Cộng Đồng BrightChoice</h2>
-            <p>
-              <span className="highlight-text">
-                Trao quyền cho cộng đồng
-              </span>{" "}
-              thông qua giáo dục và hỗ trợ
+      <div className="footer-container">
+        <div className="footer-grid">
+          {/* Company Info */}
+          <div className="footer-company">
+            <div className="footer-logo">
+              <img src="/Dlogo.jpg" alt="Drug Free" className="footer-logo-img" />
+              <span className="footer-logo-text">Drug Free</span>
+            </div>
+            <p className="footer-description">
+              Empowering individuals on their journey to recovery through education, support, and comprehensive resources.
             </p>
+            <div className="footer-social">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="footer-social-link" aria-label="Follow us on Facebook">
+                <FaFacebook size={20} />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="footer-social-link" aria-label="Follow us on Twitter">
+                <FaTwitter size={20} />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="footer-social-link" aria-label="Follow us on Instagram">
+                <FaInstagram size={20} />
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="footer-social-link" aria-label="Follow us on LinkedIn">
+                <FaLinkedin size={20} />
+              </a>
+            </div>
           </div>
 
-          <div className="footer-links">
-            <div className="footer-links-column">
-              <h3>Tài Nguyên</h3>
-              <ul>
-                <li>
-                  <Link to="/education">Trung Tâm Giáo Dục</Link>
-                </li>
-                <li>
-                  <Link to="/education/surveys">Đánh Giá</Link>
-                </li>
-                <li>
-                  <Link to="/blog">Blog</Link>
-                </li>
-              </ul>
-            </div>
+          {/* Quick Links */}
+          <div>
+            <h3 className="footer-section-title">Quick Links</h3>
+            <ul className="footer-nav-list">
+              <li className="footer-nav-item">
+                <Link to="/education" className="footer-nav-link">
+                  Education Hub
+                </Link>
+              </li>
+              <li className="footer-nav-item">
+                <Link to="/courses" className="footer-nav-link">
+                  Courses
+                </Link>
+              </li>
+              <li className="footer-nav-item">
+                <Link to="/programs" className="footer-nav-link">
+                  Recovery Programs
+                </Link>
+              </li>
+              <li className="footer-nav-item">
+                <Link to="/counseling" className="footer-nav-link">
+                  Counseling Services
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-            <div className="footer-links-column">
-              <h3>Hỗ Trợ</h3>
-              <ul>
-                <li>
-                  <Link to="/counseling">Tư Vấn</Link>
-                </li>
-                <li>
-                  <Link to="/programs">Chương Trình</Link>
-                </li>
-                <li>
-                  <Link to="/contact">Liên Hệ</Link>
-                </li>
-              </ul>
-            </div>
+          {/* Support */}
+          <div>
+            <h3 className="footer-section-title">Support</h3>
+            <ul className="footer-nav-list">
+              <li className="footer-nav-item">
+                <Link to="/help" className="footer-nav-link">
+                  Help Center
+                </Link>
+              </li>
+              <li className="footer-nav-item">
+                <Link to="/crisis" className="footer-nav-link">
+                  Crisis Support
+                </Link>
+              </li>
+              <li className="footer-nav-item">
+                <Link to="/community" className="footer-nav-link">
+                  Community Forum
+                </Link>
+              </li>
+              <li className="footer-nav-item">
+                <Link to="/resources" className="footer-nav-link">
+                  Resources
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-            <div className="footer-links-column">
-              <h3>Pháp Lý</h3>
-              <ul>
-                <li>
-                  <Link to="/privacy">Chính Sách Bảo Mật</Link>
-                </li>
-                <li>
-                  <Link to="/terms">Điều Khoản Dịch Vụ</Link>
-                </li>
-                <li>
-                  <Link to="/disclaimer">
-                    Miễn Trừ Trách Nhiệm Sức Khỏe
-                  </Link>
-                </li>
-              </ul>
+          {/* Contact Info */}
+          <div>
+            <h3 className="footer-section-title">Contact Us</h3>
+            <div className="footer-contact">
+              <div className="footer-contact-item">
+                <FaPhone className="footer-contact-icon" />
+                <span className="footer-contact-text">+1 (555) 123-4567</span>
+              </div>
+              <div className="footer-contact-item">
+                <FaEnvelope className="footer-contact-icon" />
+                <span className="footer-contact-text">support@drugfree.com</span>
+              </div>
+              <div className="footer-contact-item">
+                <FaMapMarkerAlt className="footer-contact-icon" />
+                <span className="footer-contact-text">
+                  123 Recovery Street<br />
+                  Hope City, HC 12345
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Bottom Bar */}
         <div className="footer-bottom">
-          <div className="copyright">
-            &copy; {currentYear} Cộng Đồng BrightChoice. Đã đăng ký
-            bản quyền.
-          </div>
-          <div className="social-links">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faFacebook} />
-            </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faTwitter} />
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faInstagram} />
-            </a>
+          <div className="footer-bottom-content">
+            <p className="footer-copyright">
+              © 2025 Drug Free. All rights reserved.
+            </p>
+            <div className="footer-legal-links">
+              <Link to="/privacy" className="footer-legal-link">
+                Privacy Policy
+              </Link>
+              <Link to="/terms" className="footer-legal-link">
+                Terms of Service
+              </Link>
+              <Link to="/cookies" className="footer-legal-link">
+                Cookie Policy
+              </Link>
+            </div>
           </div>
         </div>
       </div>
