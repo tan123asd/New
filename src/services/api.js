@@ -13,14 +13,13 @@ const API_ENDPOINTS = {
   
   // Category endpoints
   CATEGORIES: '/category',
-  
-  // ✅ ĐÚNG: Survey endpoints theo backend structure
+    // ✅ ĐÚNG: Survey endpoints theo backend structure  
   SURVEYS: '/api/surveys',
   SURVEY_BY_ID: (id) => `/api/surveys/${id}`,
   SURVEY_SUBMIT: (id) => `/api/surveys/${id}/submit`,
-  SUITABLE_SURVEYS: '/api/surveys/get-suitable',
+  SURVEY_GET_SUITABLE: '/api/surveys/get-suitable', // ⭐ KEY endpoint for assessment
+  SURVEY_CHECK_STATUS: '/api/surveys/check-status',
   USER_SURVEYS: (userId) => `/api/surveys/user/${userId}`,
-  SURVEY_STATUS: (userId) => `/api/surveys/status/${userId}`,
   
   // Survey Question endpoints (nếu cần riêng biệt)
   SURVEY_QUESTIONS: (surveyId) => `/api/surveys/${surveyId}/questions`,
@@ -344,53 +343,99 @@ class ApiService {
       throw error;
     }
   }
-
-  // Survey methods - CẬP NHẬT THEO BACKEND CONTROLLERS
+  // ✅ Survey methods - MAPPING ĐÚNG VỚI BACKEND CONTROLLERS
   async getSurveys() {
     try {
+      // GET /api/surveys → List<SurveyListItemDto>
       return await this.api.get(API_ENDPOINTS.SURVEYS);
     } catch (error) {
-      console.warn('getSurveys API call failed:', error);
+      console.error('getSurveys API call failed:', error);
       throw error;
     }
   }
 
-  async getSurvey(id) {
+  // ✅ ĐÚNG: Get survey by ID với Questions đầy đủ 
+  async getSurveyById(surveyId) {
     try {
-      return await this.api.get(API_ENDPOINTS.SURVEY_BY_ID(id));
+      console.log('🔍 Fetching survey details for ID:', surveyId);
+      
+      const response = await this.api.get(API_ENDPOINTS.SURVEY_BY_ID(surveyId));
+      
+      console.log('📥 Survey detail response:', response);
+      
+      // ✅ Backend trả về SurveyDetailDto với Questions array
+      if (response.success && response.data) {
+        return response.data; // Đã có Questions, Answers với PascalCase
+      }
+      
+      throw new Error('Invalid survey response format');
     } catch (error) {
-      console.warn('getSurvey API call failed:', error);
-      throw error;
-    }
-  }
-  async getSurveyQuestions(surveyId) {
-    try {
-      return await this.api.get(API_ENDPOINTS.SURVEY_QUESTIONS(surveyId));
-    } catch (error) {
-      console.error('Failed to fetch survey questions:', error);
-      throw error;
-    }
-  }
-
-  async getSurveyWithQuestions(surveyId) {
-    try {
-      // Gọi endpoint chi tiết survey để lấy thông tin survey và questions
-      return await this.api.get(API_ENDPOINTS.SURVEY_DETAIL(surveyId));
-    } catch (error) {
-      console.error('Failed to fetch survey with questions:', error);
+      console.error('❌ Failed to get survey by ID:', error);
       throw error;
     }
   }
 
-  async submitSurveyAnswer(surveyAnswerData) {
+  // ⭐ KEY METHOD: Lấy survey phù hợp với tuổi user (cho Assessment Page)
+  async getSuitableSurvey() {
     try {
-      return await this.api.post(API_ENDPOINTS.SURVEY_ANSWERS, surveyAnswerData);
+      // GET /api/surveys/get-suitable → SurveyDetailDto 
+      // Backend tự động tính tuổi từ DateOfBirth và chọn survey phù hợp
+      // Trả về 10 câu hỏi random từ survey đó
+      return await this.api.get(API_ENDPOINTS.SURVEY_GET_SUITABLE);
     } catch (error) {
-      console.error('Failed to submit survey answer:', error);
+      console.error('getSuitableSurvey API call failed:', error);
+      if (error.response?.data?.message?.includes('DateOfBirth')) {
+        throw new Error('DateOfBirth required. Please update your profile first.');
+      }
       throw error;
     }
   }
 
+  // Kiểm tra trạng thái survey của user (đã làm bao nhiêu lần, còn lại bao nhiêu lần)
+  async checkSurveyStatus() {
+    try {
+      // GET /api/surveys/check-status → SurveyStatusDto
+      return await this.api.get(API_ENDPOINTS.SURVEY_CHECK_STATUS);
+    } catch (error) {
+      console.error('checkSurveyStatus API call failed:', error);
+      throw error;
+    }
+  }
+
+  // ✅ ĐÚNG: Submit survey answers theo format backend Azure
+  async submitSurveyAnswers(surveyId, answers) {
+    try {
+      console.log('🎯 Submitting survey answers:', { surveyId, answers });
+      
+      // ✅ ĐÚNG: Format theo SubmitSurveyRequestDto backend mong đợi
+      let submitData;
+      
+      if (answers.Answers) {
+        // Nếu đã có format đúng từ frontend
+        submitData = answers;
+      } else {
+        // Nếu là object answers thông thường, convert sang format đúng
+        submitData = {
+          Answers: Object.entries(answers).map(([questionId, answerId]) => ({
+            QuestionId: questionId,
+            SelectedAnswerId: answerId
+          }))
+        };
+      }
+      
+      console.log('📤 Submit data format:', submitData);
+      
+      const response = await this.api.post(API_ENDPOINTS.SURVEY_SUBMIT(surveyId), submitData);
+      
+      console.log('✅ Survey submission response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to submit survey answers:', error);
+      throw error;
+    }
+  }
+
+  // ✅ ĐÚNG: Get user surveys
   async getUserSurveys(userId = null) {
     try {
       const targetUserId = userId || this.getCurrentUserId();
@@ -399,42 +444,20 @@ class ApiService {
       }
       return await this.api.get(API_ENDPOINTS.USER_SURVEYS(targetUserId));
     } catch (error) {
-      console.warn('getUserSurveys API call failed:', error);
+      console.error('getUserSurveys API call failed:', error);
       throw error;
     }
   }
 
-  async getSuitableSurveys(userId = null) {
-    try {
-      const targetUserId = userId || this.getCurrentUserId();
-      if (!targetUserId) {
-        throw new Error('No user ID available');
-      }
-      return await this.api.get(API_ENDPOINTS.SUITABLE_SURVEYS(targetUserId));
-    } catch (error) {
-      console.warn('getSuitableSurveys API call failed:', error);
-      throw error;
-    }
-  }
-
-  async getSurveyStatus(userId = null) {
-    try {
-      const targetUserId = userId || this.getCurrentUserId();
-      if (!targetUserId) {
-        throw new Error('No user ID available');
-      }
-      return await this.api.get(API_ENDPOINTS.SURVEY_STATUS(targetUserId));
-    } catch (error) {
-      console.warn('getSurveyStatus API call failed:', error);
-      throw error;
-    }  }  // Courses methods - CẢI THIỆN
+  // Courses methods - CẢI THIỆN
   async getCourses() {
     try {
       return await this.api.get(API_ENDPOINTS.COURSES);
     } catch (error) {
       console.error('getCourses API call failed:', error);
       return createErrorResponse(error, 'Failed to fetch courses');
-    }}
+    }
+  }
 
   // Counseling
   async getCounselingSlots() {
@@ -446,6 +469,7 @@ class ApiService {
     }
   }
 
+  // ✅ ĐÚNG: Book counseling slot
   async bookCounselingSlot(slotId) {
     try {
       validateRequired(slotId, 'Slot ID');
@@ -462,7 +486,8 @@ class ApiService {
     } catch (error) {
       console.warn('bookCounselingSlot API call failed:', error);
       return createErrorResponse(error, 'Failed to book counseling slot');
-    }  }
+    }
+  }
 
   // Course methods
   async getCourse(courseId) {
@@ -474,6 +499,7 @@ class ApiService {
     }
   }
 
+  // ✅ ĐÚNG: Enroll in program
   async enrollProgram(programId) {
     try {
       return await this.api.post(API_ENDPOINTS.PROGRAM_ENROLL, { programId });
@@ -483,7 +509,7 @@ class ApiService {
     }
   }
 
-  // API health check and validation
+  // ✅ ĐÚNG: API health check and validation
   async validateApiConnection() {
     try {
       console.log('🔍 Validating API connection...');
@@ -500,7 +526,7 @@ class ApiService {
     }
   }
 
-  // Test all critical endpoints
+  // ✅ ĐÚNG: Test all critical endpoints
   async testCriticalEndpoints() {
     const results = {
       health: false,
@@ -535,53 +561,6 @@ class ApiService {
     console.log('🧪 Endpoint test results:', results);
     return results;
   }
-
-  // ✅ ĐÚNG: Submit survey answers theo format backend Azure
-  async submitSurveyAnswers(surveyId, answers) {
-    try {
-      console.log('🎯 Submitting survey answers:', { surveyId, answers });
-      
-      // ✅ ĐÚNG: Format theo SubmitSurveyRequestDto backend mong đợi
-      const submitData = {
-        Answers: Object.entries(answers).map(([questionId, answerId]) => ({
-          QuestionId: questionId,
-          SelectedAnswerId: answerId
-        }))
-      };
-      
-      console.log('📤 Submit data format:', submitData);
-      
-      const response = await this.api.post(API_ENDPOINTS.SURVEY_SUBMIT(surveyId), submitData);
-      
-      console.log('✅ Survey submission response:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Failed to submit survey answers:', error);
-      throw error;
-    }
-  }
-
-  // ✅ ĐÚNG: Get survey by ID với Questions đầy đủ 
-  async getSurveyById(surveyId) {
-    try {
-      console.log('🔍 Fetching survey details for ID:', surveyId);
-      
-      const response = await this.api.get(API_ENDPOINTS.SURVEY_BY_ID(surveyId));
-      
-      console.log('📥 Survey detail response:', response);
-      
-      // ✅ Backend trả về SurveyDetailDto với Questions array
-      if (response.success && response.data) {
-        return response.data; // Đã có Questions, Answers với PascalCase
-      }
-      
-      throw new Error('Invalid survey response format');
-    } catch (error) {
-      console.error('❌ Failed to get survey by ID:', error);
-      throw error;
-    }  }
-
-  // ...existing code...
 }
 
 const apiService = new ApiService();

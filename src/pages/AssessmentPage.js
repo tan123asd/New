@@ -1,80 +1,182 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaClipboardList, FaChartLine, FaCheckCircle, FaClock } from 'react-icons/fa';
-import { useSurveys } from '../hooks';
+import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
 import SurveyQuestionRenderer from '../components/SurveyQuestionRenderer';
 import DatabaseStructureTest from '../components/DatabaseStructureTest';
+import AssessmentTest from '../components/AssessmentTest';
+import SimpleApiTest from '../components/SimpleApiTest';
+import AuthTest from '../components/AuthTest';
 import './AssessmentPage.css';
 
-const AssessmentPage = () => {  const [assessments, setAssessments] = useState([]);
-  const [currentAssessment, setCurrentAssessment] = useState(null);  const [answers, setAnswers] = useState({});
-    // New states for question management
-  const [selectedAssessment, setSelectedAssessment] = useState(null);
-  const [assessmentQuestions, setAssessmentQuestions] = useState([]);
-  const [loadingQuestions, setLoadingQuestions] = useState(false);
+const AssessmentPage = () => {
+  const navigate = useNavigate();
+  const [surveyData, setSurveyData] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  
   // Database testing state
   const [showDatabaseTest, setShowDatabaseTest] = useState(false);
-  
-  // Use custom hooks for better state management
-  const { surveys, loading: surveysLoading, error: surveysError, fetchSurveys } = useSurveys();
+  const [showAssessmentTest, setShowAssessmentTest] = useState(false);
+
+  // Debug state
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
-    fetchAssessments();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // We only want to run this once on mount  // Enhanced data transformation - MAPPING ĐÚNG THEO BACKEND PASCALCASE
-  const transformSurveyToAssessment = useCallback((survey) => {
-    // ✅ ĐÚNG: Map theo PascalCase từ backend Azure database
-    const surveyId = survey.SurveyId || survey.Id || survey.id;
-    const surveyTitle = survey.Title || survey.title || 'Untitled Assessment';
-    const surveyDescription = survey.Description || survey.description || 'Complete this assessment to track your progress';
+    console.log('🔍 AssessmentPage mounted');
+    console.log('🔐 Checking authentication...');
     
-    // ✅ ĐÚNG: Handle Questions array từ backend
-    const questionCount = survey.Questions?.length || 
-                         survey.questionCount || 
-                         0;
+    // Check if user is logged in
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const token = localStorage.getItem('accessToken');
     
-    // ✅ ĐÚNG: Handle completion status
-    const isCompleted = survey.IsCompleted || 
-                       survey.completed || 
-                       survey.status === 'completed' ||
-                       false;
+    console.log('👤 Current user:', user);
+    console.log('🔑 Has token:', !!token);
     
-    // ✅ ĐÚNG: Handle timestamps từ backend
-    const lastTakenDate = survey.LastTaken || 
-                         survey.CompletedAt || 
-                         survey.UpdatedAt ||
-                         null;
-      // ✅ ĐÚNG: Handle score từ backend
-    const assessmentScore = survey.Score || 
-                           survey.TotalScore || 
-                           survey.Result?.Score ||
-                           null;
+    if (!user || !token) {
+      console.log('❌ User not authenticated, redirecting to login...');
+      setError('Please log in to access the assessment.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+      return;
+    }
+    
+    console.log('✅ User authenticated, loading survey...');
+    loadSuitableSurvey();
+  }, [navigate]);
 
-    return {
-      id: surveyId,
-      title: surveyTitle,
-      description: surveyDescription,
-      questions: questionCount,
-      duration: estimateDuration(questionCount),
-      completed: isCompleted,
-      lastTaken: lastTakenDate ? new Date(lastTakenDate) : null,
-      score: assessmentScore,
-      category: survey.Category || survey.CategoryId || 'general',
-      difficulty: survey.Difficulty || survey.Level || 'medium',
-      surveyData: survey // Keep original data for reference
-    };
-  }, []); // Dependencies for useCallback
-
-  const fetchAssessments = async () => {
+  // ✅ ĐÚNG: Load survey phù hợp với tuổi user
+  const loadSuitableSurvey = async () => {
     try {
-      console.log('AssessmentPage: Fetching assessments from API...');
+      setLoading(true);
+      setError(null);
       
-      // Use the custom hook to fetch surveys
-      await fetchSurveys();
+      console.log('🔍 Loading suitable survey for user...');
+      console.log('🌐 API Base URL:', process.env.REACT_APP_API_BASE_URL || 'Not set');
+      
+      // ✅ ĐÚNG: Gọi API lấy survey phù hợp với tuổi
+      console.log('📡 Calling getSuitableSurvey()...');
+      const response = await ApiService.getSuitableSurvey();
+      
+      console.log('📥 Raw API response:', response);
+      
+      if (response && response.success && response.data) {
+        const survey = response.data;
+        console.log('✅ Suitable survey loaded:', survey);
+        
+        setSurveyData(survey);
+        // ✅ ĐÚNG: Backend trả về Questions với PascalCase
+        setQuestions(survey.Questions || []);
+        
+        console.log(`📝 Loaded ${survey.Questions?.length || 0} questions`);
+        console.log('📋 Sample question:', survey.Questions?.[0]);
+      } else {
+        console.error('❌ Invalid survey response:', response);
+        throw new Error('Invalid survey response');
+      }
       
     } catch (error) {
-      console.error('Failed to fetch assessments:', error);
-      // Error handling is managed by the custom hook
+      console.error('❌ Failed to load suitable survey:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response,
+        status: error.status
+      });
+      
+      if (error.message.includes('DateOfBirth')) {
+        // ✅ ĐÚNG: Handle error thiếu ngày sinh
+        console.log('⚠️ DateOfBirth required, redirecting to profile...');
+        setError('Please update your profile with your date of birth first.');
+        setTimeout(() => {
+          navigate('/profile');
+        }, 3000);
+      } else if (error.message.includes('Network error')) {
+        setError('Network error - please check your connection and try again.');
+      } else if (error.status === 401) {
+        setError('Authentication required. Please log in again.');
+      } else if (error.status === 404) {
+        setError('Assessment not found. Please contact support.');
+      } else {
+        setError(`Failed to load assessment: ${error.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ ĐÚNG: Handle answer selection
+  const handleAnswerChange = (questionId, answerId) => {
+    console.log('📝 Answer selected:', { questionId, answerId });
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: answerId
+    }));
+  };
+
+  // ✅ ĐÚNG: Submit assessment theo format backend
+  const handleSubmitAssessment = async () => {
+    try {
+      setSubmitting(true);
+      
+      if (!surveyData || !surveyData.SurveyId) {
+        throw new Error('No survey data available');
+      }
+      
+      // Validate all questions are answered
+      const unansweredQuestions = questions.filter(q => !answers[q.QuestionId]);
+      if (unansweredQuestions.length > 0) {
+        alert(`Please answer all questions. You have ${unansweredQuestions.length} unanswered questions.`);
+        return;
+      }
+      
+      console.log('🎯 Submitting assessment answers:', answers);
+      
+      // ✅ ĐÚNG: Submit theo format backend mong đợi
+      const surveyId = surveyData.SurveyId;
+      
+      const submitData = {
+        Answers: Object.entries(answers).map(([questionId, answerId]) => ({
+          QuestionId: questionId,
+          SelectedAnswerId: answerId
+        }))
+      };
+      
+      console.log('📤 Submit data format:', submitData);
+      
+      const response = await ApiService.submitSurveyAnswers(surveyId, submitData);
+      
+      if (response.success) {
+        const result = response.data;
+        const score = result.Score || 'N/A';
+        const totalPoints = result.TotalPoints || 100;
+        const percentage = result.Percentage || 0;
+        
+        alert(`Assessment submitted successfully!\nYour score: ${score}/${totalPoints} (${percentage}%)`);
+        
+        // Reset state after successful submission
+        setSurveyData(null);
+        setQuestions([]);
+        setAnswers({});
+        
+        // Reload for new assessment
+        setTimeout(() => {
+          loadSuitableSurvey();
+        }, 2000);
+        
+      } else {
+        throw new Error(response.message || 'Submission failed');
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to submit assessment:', error);
+      alert(`Failed to submit assessment: ${error.message}`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -85,240 +187,44 @@ const AssessmentPage = () => {  const [assessments, setAssessments] = useState([
     try {
       // Test 1: Health check
       console.log('📡 Testing health endpoint...');
-      const healthResponse = await ApiService.api.get('/health');
+      const healthResponse = await ApiService.validateApiConnection();
       console.log('✅ Health check:', healthResponse);
+      
+      // Test 2: Check survey status
+      console.log('📡 Testing survey status...');
+      const statusResponse = await ApiService.checkSurveyStatus();
+      console.log('✅ Survey status:', statusResponse);
+      
     } catch (error) {
-      console.error('❌ Health check failed:', error.message);
-    }
-    
-    try {
-      // Test 2: Get all surveys
-      console.log('📡 Testing surveys endpoint...');
-      const surveysResponse = await ApiService.getAllSurveys();
-      console.log('✅ Surveys response:', surveysResponse);
-      
-      if (surveysResponse && surveysResponse.success && surveysResponse.data) {
-        const surveys = surveysResponse.data;
-        console.log(`✅ Found ${surveys.length} surveys`);
-        
-        if (surveys.length > 0) {
-          const testSurvey = surveys[0];
-          console.log('🧪 Testing with first survey:', testSurvey);
-          
-          // Test 3: Get survey details
-          try {
-            console.log('📡 Testing survey detail endpoint...');
-            const detailResponse = await ApiService.getSurveyWithQuestions(testSurvey.id);
-            console.log('✅ Survey detail response:', detailResponse);
-          } catch (detailError) {
-            console.error('❌ Survey detail failed:', detailError.message);
-          }
-          
-          // Test 4: Get survey questions
-          try {
-            console.log('📡 Testing survey questions endpoint...');
-            const questionsResponse = await ApiService.getSurveyQuestions(testSurvey.id);
-            console.log('✅ Survey questions response:', questionsResponse);
-          } catch (questionsError) {
-            console.error('❌ Survey questions failed:', questionsError.message);
-          }
-        } else {
-          console.warn('⚠️ No surveys found in database');
-        }
-      }
-    } catch (error) {
-      console.error('❌ Surveys endpoint failed:', error.message);
+      console.error('❌ API test failed:', error.message);
     }
   };
 
-  // Transform surveys data when it changes
-  useEffect(() => {
-    if (surveys && Array.isArray(surveys)) {
-      console.log('AssessmentPage: Raw surveys data:', surveys);
-      
-      const transformedAssessments = surveys.map(transformSurveyToAssessment);
-      
-      console.log('AssessmentPage: Transformed assessments:', transformedAssessments);
-      setAssessments(transformedAssessments);    } else if (surveysError) {
-      console.error('AssessmentPage: Error from surveys hook:', surveysError);      
-      // ✅ REMOVED: No fallback mock data - show empty state
-      setAssessments([]);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [surveys, surveysError]);
-  // ✅ REMOVED: Mock data function completely removed - only use real API data
-  
-  // Enhanced duration estimation with more accurate calculations
-  const estimateDuration = (questionCount) => {
-    if (!questionCount || questionCount === 0) return '5-10 minutes';
-    
-    // More realistic estimation: 30-45 seconds per question
-    const minMinutes = Math.max(5, Math.ceil(questionCount * 0.5));
-    const maxMinutes = Math.max(minMinutes + 2, Math.ceil(questionCount * 0.75));
-    
-    return `${minMinutes}-${maxMinutes} minutes`;
-  };  const startAssessment = async (assessment) => {
-    setSelectedAssessment(assessment);
-    await handleStartAssessment(assessment);
-  };
-
-  const handleStartAssessment = async (assessment) => {
-    try {
-      setLoadingQuestions(true);
-      setSelectedAssessment(assessment);
-      
-      console.log('Loading questions for assessment:', assessment.id);
-      const response = await ApiService.getSurvey(assessment.id);
-      
-      if (response && response.success && response.data && response.data.questions) {
-        setAssessmentQuestions(response.data.questions);
-        console.log(`Loaded ${response.data.questions.length} questions`);
-        
-        setCurrentAssessment({
-          ...assessment,
-          questions: response.data.questions
-        });
-        setAnswers({});
-      } else {
-        console.warn('No questions found in survey data');
-        setAssessmentQuestions([]);
-        alert('Không thể tải câu hỏi. Vui lòng thử lại sau.');
-      }
-    } catch (error) {
-      console.error('Failed to load assessment questions:', error);
-      alert('Không thể tải câu hỏi. Vui lòng thử lại sau.');
-    } finally {
-      setLoadingQuestions(false);
-    }  };
-
-  // ✅ REMOVED: Mock questions function completely removed - only use real API data
-  
-  const handleAnswerChange = (questionId, answer) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: answer
-    }));
-  };
-  const handleSubmitAssessment = async () => {
-    try {
-      console.log('✅ AssessmentPage: Submitting assessment answers:', answers);
-      
-      if (!currentAssessment || !currentAssessment.id) {
-        alert('No assessment selected');
-        return;
-      }
-      
-      // Validate required questions
-      const requiredQuestions = assessmentQuestions.filter(q => q.required);
-      const missingAnswers = requiredQuestions.filter(q => !answers[q.QuestionId || q.id]);
-      
-      if (missingAnswers.length > 0) {
-        alert('Please answer all required questions before submitting.');
-        return;
-      }
-      
-      // ✅ ĐÚNG: Submit theo format backend Azure mong đợi
-      console.log('🎯 Submitting to survey ID:', currentAssessment.id);
-      console.log('📤 Raw answers:', answers);
-      
-      const response = await ApiService.submitSurveyAnswers(currentAssessment.id, answers);
-      
-      console.log('✅ Submission successful:', response);      
-      if (response.success) {
-        const score = response.data?.Score || response.data?.score || 'N/A';
-        const totalPoints = response.data?.TotalPoints || response.data?.totalPoints || 100;
-        const percentage = response.data?.Percentage || response.data?.percentage || 0;
-        
-        alert(`Assessment submitted successfully! Your score: ${score}/${totalPoints} (${percentage}%)`);
-        
-        // Update assessment as completed
-        setAssessments(prev => prev.map(assessment => 
-          assessment.id === currentAssessment.id 
-            ? { ...assessment, completed: true, score: score, lastTaken: new Date() }
-            : assessment
-        ));
-        
-        // Reset state        setCurrentAssessment(null);
-        setSelectedAssessment(null);
-        setAssessmentQuestions([]);
-        setAnswers({});
-      } else {
-        alert('Submission failed: ' + (response.message || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Failed to submit assessment:', error);
-      alert('Failed to submit assessment. Please try again.');
-    }
-  };
-
-  const renderAssessmentQuestions = () => {
-    if (loadingQuestions) {
-      return (
-        <div className="assessment-loading">
-          <div className="assessment-loading-spinner"></div>
-          <p>Loading questions...</p>
-        </div>
-      );
-    }
-
-    if (!assessmentQuestions || assessmentQuestions.length === 0) {
-      return (
-        <div className="assessment-no-questions">
-          <p>No questions available for this assessment.</p>          <button 
-            onClick={() => {
-              setCurrentAssessment(null);
-              setSelectedAssessment(null);
-              setAssessmentQuestions([]);
-            }}
-            className="assessment-btn assessment-btn-secondary"
-          >
-            Back to Assessments
-          </button>
-        </div>
-      );
-    }    return (
-      <div className="assessment-questions">
-        <SurveyQuestionRenderer 
-          questions={assessmentQuestions.map(q => ({
-            questionId: q.id,
-            content: q.text || q.questionText || 'Question text not available',
-            answers: q.options?.map(opt => ({
-              answerId: opt.id || opt,
-              answerText: opt.text || opt
-            })) || []
-          }))}
-          onAnswerChange={handleAnswerChange}
-          answers={answers}
-        />
-      </div>
-    );
-  };
-
-  // Show loading state while fetching surveys
-  if (surveysLoading && assessments.length === 0) {
+  // Show loading state
+  if (loading) {
     return (
       <div className="assessment-page">
         <div className="assessment-container">
           <div className="text-center">
             <div className="loading-spinner"></div>
-            <p>Loading assessments...</p>
+            <p>Loading assessment...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Show error state if there's an error and no fallback data
-  if (surveysError && assessments.length === 0) {
+  // Show error state
+  if (error) {
     return (
       <div className="assessment-page">
         <div className="assessment-container">
           <div className="text-center">
             <div className="error-message">
-              <h2>Unable to Load Assessments</h2>
-              <p>There was an error loading your assessments. Please try again later.</p>
+              <h2>Unable to Load Assessment</h2>
+              <p>{error}</p>
               <button 
-                onClick={fetchAssessments}
+                onClick={loadSuitableSurvey}
                 className="btn btn-primary"
               >
                 Retry
@@ -328,43 +234,50 @@ const AssessmentPage = () => {  const [assessments, setAssessments] = useState([
         </div>
       </div>
     );
-  }  if (currentAssessment) {
+  }
+
+  // Show assessment questions
+  if (surveyData && questions.length > 0) {
     return (
       <div className="assessment-page">
         <div className="assessment-container">
           <div className="assessment-card">
             <div className="assessment-header-info">
-              <h1>{currentAssessment.title}</h1>
-              <p>{currentAssessment.description}</p>
+              <h1>{surveyData.Title}</h1>
+              <p>{surveyData.Description}</p>
               <div className="assessment-progress">
-                <span>Questions: {assessmentQuestions.length || 0}</span>
-                <span>Duration: {currentAssessment.duration}</span>
+                <span>Questions: {questions.length}</span>
+                <span>Duration: ~{Math.ceil(questions.length * 0.75)} minutes</span>
               </div>
             </div>
             
-            {/* Render questions using the new method */}
-            {renderAssessmentQuestions()}
+            {/* ✅ ĐÚNG: Render questions với PascalCase mapping */}
+            <div className="assessment-questions">
+              <SurveyQuestionRenderer 
+                questions={questions}
+                onAnswerChange={handleAnswerChange}
+                answers={answers}
+              />
+            </div>
 
-            <div className="assessment-actions">              <button 
+            <div className="assessment-actions">
+              <button 
                 onClick={() => {
-                  setCurrentAssessment(null);
-                  setSelectedAssessment(null);
-                  setAssessmentQuestions([]);
+                  setSurveyData(null);
+                  setQuestions([]);
                   setAnswers({});
+                  loadSuitableSurvey();
                 }}
                 className="assessment-btn assessment-btn-secondary"
               >
-                Back to Assessments
+                Cancel Assessment
               </button>
               <button 
                 onClick={handleSubmitAssessment}
                 className="assessment-btn assessment-btn-primary"
-                disabled={
-                  loadingQuestions || 
-                  (assessmentQuestions.some(q => q.required && !answers[q.id]))
-                }
+                disabled={submitting || questions.some(q => !answers[q.QuestionId])}
               >
-                {loadingQuestions ? 'Loading...' : 'Submit Assessment'}
+                {submitting ? 'Submitting...' : 'Submit Assessment'}
               </button>
             </div>
           </div>
@@ -372,12 +285,16 @@ const AssessmentPage = () => {  const [assessments, setAssessments] = useState([
       </div>
     );
   }
+
+  // Show main assessment page
   return (
     <div className="assessment-page">
-      <div className="assessment-container">        <div className="assessment-header">
-          <h1>Recovery Assessments</h1>
-          <p>Track your progress and evaluate your recovery journey with our comprehensive assessments</p>
-            {/* Debug: Test API Connection Button */}
+      <div className="assessment-container">
+        <div className="assessment-header">
+          <h1>Recovery Assessment</h1>
+          <p>Complete this assessment to evaluate your current recovery status and receive personalized recommendations</p>
+          
+          {/* Debug: Test API Connection Button */}
           <div className="assessment-debug-section" style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
             <h4 style={{ margin: '0 0 0.5rem 0', color: '#495057' }}>🔧 Debug Tools</h4>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -404,73 +321,39 @@ const AssessmentPage = () => {  const [assessments, setAssessments] = useState([
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '0.875rem'                }}
+                  fontSize: '0.875rem'
+                }}
               >
                 🗄️ {showDatabaseTest ? 'Hide' : 'Test'} Database Structure
+              </button>
+              <button 
+                onClick={() => setShowAssessmentTest(!showAssessmentTest)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                🧪 {showAssessmentTest ? 'Hide' : 'Test'} Assessment Integration
               </button>
             </div>
           </div>
         </div>
 
-        <div className="assessment-grid">
-          {assessments.map((assessment) => (
-            <div key={assessment.id} className="assessment-card">
-              <div className="assessment-card-header">
-                <div className="assessment-card-icon">
-                  <FaClipboardList />
-                </div>
-                <div className="assessment-card-content">
-                  <h3 className="assessment-card-title">{assessment.title}</h3>
-                  <p className="assessment-card-description">{assessment.description}</p>
-                </div>
-              </div>
-              
-              <div className="assessment-card-meta">
-                <div className="assessment-meta-item">
-                  <FaClipboardList />
-                  <span>{assessment.questions} questions</span>
-                </div>
-                <div className="assessment-meta-item">
-                  <FaClock />
-                  <span>{assessment.duration}</span>
-                </div>
-              </div>
-              
-              {assessment.completed ? (
-                <div className="assessment-completed">
-                  <div className="assessment-score">
-                    <span className="assessment-score-label">Last completed:</span>
-                    <span className="assessment-score-value">{assessment.lastTaken}</span>
-                  </div>
-                  <div className="assessment-score">
-                    <span className="assessment-score-label">Score:</span>
-                    <span className="assessment-score-value assessment-score-number">{assessment.score}/100</span>
-                  </div>
-                  <div className="assessment-status">
-                    <FaCheckCircle />
-                    <span>Completed</span>
-                  </div>
-                  <button
-                    onClick={() => startAssessment(assessment)}
-                    className="assessment-btn assessment-btn-primary"
-                  >
-                    Retake Assessment
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => startAssessment(assessment)}
-                  className="assessment-btn assessment-btn-primary"
-                >
-                  Start Assessment
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
+        {showDatabaseTest && (
+          <DatabaseStructureTest />
+        )}
+
+        {showAssessmentTest && (
+          <AssessmentTest />
+        )}
 
         <div className="assessment-overview">
-          <h2 className="assessment-overview-title">Your Progress Overview</h2>
+          <h2 className="assessment-overview-title">Assessment Overview</h2>
           <div className="assessment-overview-grid">
             <div className="assessment-overview-item">
               <FaChartLine className="assessment-overview-icon" />
@@ -489,6 +372,56 @@ const AssessmentPage = () => {  const [assessments, setAssessments] = useState([
             </div>
           </div>
         </div>
+
+        <div className="assessment-start-section">
+          <div className="assessment-start-card">
+            <h2>Ready to Start Your Assessment?</h2>
+            <p>This assessment will help us understand your current situation and provide personalized recommendations for your recovery journey.</p>
+            <button 
+              onClick={loadSuitableSurvey}
+              className="assessment-btn assessment-btn-primary"
+              style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+            >
+              Start Assessment
+            </button>
+          </div>
+        </div>
+
+        {/* Debug Toggle */}
+        <button 
+          onClick={() => setShowDebug(!showDebug)}
+          style={{
+            position: 'fixed',
+            top: '10px',
+            right: '10px',
+            padding: '0.5rem',
+            backgroundColor: showDebug ? '#dc3545' : '#28a745',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '0.8rem',
+            zIndex: 1000
+          }}
+        >
+          {showDebug ? 'Hide Debug' : 'Show Debug'}
+        </button>
+
+        {/* Debug Section */}
+        {showDebug && (
+          <div className="debug-section">
+            <h3>🔧 Debug Tools</h3>
+            <button onClick={() => setShowAssessmentTest(!showAssessmentTest)}>
+              {showAssessmentTest ? 'Hide' : 'Show'} Assessment Test
+            </button>
+            {showAssessmentTest && <AssessmentTest />}
+            
+            <AuthTest />
+            <SimpleApiTest />
+            
+            <DatabaseStructureTest />
+          </div>
+        )}
       </div>
     </div>
   );
